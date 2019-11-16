@@ -10,10 +10,11 @@ Node::Node(int node_id, int supply) : node_id_(node_id),
                                       supply_(supply),
                                       is_root_(false),
                                       is_leaf_(false),
-                                      son_(INVALID_NODE_ID),
-                                      brother_(INVALID_NODE_ID),
                                       pred_(INVALID_NODE_ID),
                                       depth_(0),
+                                      son_(INVALID_NODE_ID),
+                                      brother_(INVALID_NODE_ID),
+                                      num_succ_(0),
                                       price_(MAX_PRICE) {}
 
 void Node::set_root() {

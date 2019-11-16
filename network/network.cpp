@@ -8,7 +8,7 @@
 
 namespace network {
 
-inline BiKeyInt GetArcKey(int src, int dst) {
+inline ArcKey GetArcKey(int src, int dst) {
     return {src, dst};
 }
 
@@ -72,7 +72,7 @@ int Network::AddArc(int src, int dst, double cost, int capacity, bool is_artific
 //    printf("Arc %d src %d dst %d\n", aid, src, dst);
     arcs_.insert({aid, arc});
     nodes_[src]->AddArdDst(dst);
-    AddArcIdx(src, dst, arc);
+    AddArcIdx(arc);
     return aid;
 }
 
@@ -84,7 +84,9 @@ int Network::AddArc(int src, int dst) {
     return AddArc(src, dst, 0, MAX_CAPACITY, true);
 }
 
-int Network::AddArcIdx(int src, int dst, const ArcPtr &p_arc) {
+int Network::AddArcIdx(const ArcPtr &p_arc) {
+    int src = p_arc->GetSrcId();
+    int dst = p_arc->GetDstId();
     auto key = GetArcKey(src, dst);
     arc_idx_.insert({key, p_arc});
     return arc_idx_.size();
@@ -94,9 +96,17 @@ ArcPtr Network::GetArc(int aid) const {
     return FindMap(arcs_, aid);
 }
 
+ArcPtr Network::GetArc(const ArcKey &key) {
+    return FindHashMap(arc_idx_, key);
+}
+
+ArcPtr Network::GetArc(const ArcKey &key) const {
+    return FindHashMap(arc_idx_, key);
+}
+
 ArcPtr Network::GetArc(int src, int dst) {
     auto key = GetArcKey(src, dst);
-    return FindHashMap(arc_idx_, key);
+    return GetArc(key);
 }
 
 ArcPtr Network::GetArc(int src, int dst) const {

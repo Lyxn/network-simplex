@@ -52,6 +52,12 @@ public:
 
     bool IsStatusLower() const;
 
+    void SetStatus(FlowStatus status);
+
+    int GetSrcId() const;
+
+    int GetDstId() const;
+
 public:
     int arc_id_;
     int src_id_;

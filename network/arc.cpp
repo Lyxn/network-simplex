@@ -59,4 +59,17 @@ bool Arc::IsStatusUpper() const {
 bool Arc::IsStatusLower() const {
     return status_ == FLOW_LOWER;
 }
+
+void Arc::SetStatus(FlowStatus status) {
+    status_ = status;
+}
+
+int Arc::GetSrcId() const {
+    return src_id_;
+}
+
+int Arc::GetDstId() const {
+    return dst_id_;
+}
+
 }

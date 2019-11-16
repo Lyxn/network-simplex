@@ -4,32 +4,35 @@ project(network_simplex)
 set(CMAKE_CXX_STANDARD 11)
 
 include_directories(${PROJECT_SOURCE_DIR})
-include_directories(common network test)
-
+include_directories(common network simplex)
 
 set(SRC_FILES
         common/common.h
         common/hash_type.h
-        common/utils.h
         common/utils.cpp
-        network/node.h
+        common/utils.h
         network/node.cpp
-        network/arc.h
+        network/node.h
         network/arc.cpp
-        network/network.h
+        network/arc.h
         network/network.cpp
+        network/network.h
+        network/network_utils.cpp
         network/network_utils.h
-        network/network_utils.cpp)
+        simplex/cycle.cpp
+        simplex/cycle.h
+        simplex/tree.cpp
+        simplex/tree.h)
 
-add_executable(test_main
-        main.cpp)
-
-add_executable(test_utils
-        test/test_utils.cpp
-        common/utils.h
-        common/utils.cpp
-        )
-
-add_executable(test_network
-        test/test_network.cpp
+add_library(netopt
         ${SRC_FILES})
+
+link_libraries(netopt)
+
+add_executable(test_main main.cpp)
+
+add_executable(test_utils test/test_utils.cpp)
+
+add_executable(test_network test/test_network.cpp)
+
+add_executable(test_tree test/test_tree.cpp)

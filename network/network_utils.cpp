@@ -116,7 +116,7 @@ int FindShortestPathDijkstra(Network &nwk, int dst) {
     auto p_dst = nwk.GetNode(dst);
     p_dst->price_ = 0;
     p_dst->pred_ = INVALID_NODE_ID;
-    set<int> node_shortest;
+    std::set<int> node_shortest;
     do {
         // find min node
         int min_node = INVALID_NODE_ID;

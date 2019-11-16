@@ -14,11 +14,8 @@
 
 namespace network {
 
-using std::set;
-
 const int INVALID_NODE_ID = -1;
 const double MAX_PRICE = DBL_MAX;
-
 
 class Node {
 public:
@@ -43,8 +40,8 @@ public:
 public:
     int node_id_;
     int supply_;
-    set<int> arc_dst_;
-    set<int> neighbor_;
+    std::set<int> arc_dst_;
+    std::set<int> neighbor_;
 
     //Spanning Tree
     int is_root_;
@@ -55,6 +52,7 @@ public:
     //XPI
     int son_;
     int brother_;
+    int num_succ_;
 
     //Price
     double price_;

@@ -7,23 +7,20 @@
 
 #include <memory>
 #include <map>
-#include <string>
 #include <sstream>
 #include <ostream>
 
 #include "hash_type.h"
+#include "utils.h"
 #include "node.h"
 #include "arc.h"
 
 namespace network {
 
-using std::map;
-using std::string;
-
 typedef std::shared_ptr<Arc> ArcPtr;
 typedef std::shared_ptr<Node> NodePtr;
-
-typedef std::unordered_map<BiKeyInt, ArcPtr, HashBiKeyInt, EqualBiKeyInt> ArcPtrMap;
+typedef BiKeyInt ArcKey;
+typedef std::unordered_map<ArcKey, ArcPtr, HashBiKeyInt> ArcPtrMap;
 
 class Network {
 public:
@@ -45,6 +42,10 @@ public:
 
     ArcPtr GetArc(int aid) const;
 
+    ArcPtr GetArc(const ArcKey &key);
+
+    ArcPtr GetArc(const ArcKey &key) const;
+
     ArcPtr GetArc(int src, int dst);
 
     ArcPtr GetArc(int src, int dst) const;
@@ -60,13 +61,13 @@ public:
     }
 
 public:
-    map<int, NodePtr> nodes_;
-    map<int, ArcPtr> arcs_;
+    std::map<int, NodePtr> nodes_;
+    std::map<int, ArcPtr> arcs_;
     ArcPtrMap arc_idx_;
     double max_cost_{};
 
 private:
-    int AddArcIdx(int src, int dst, const ArcPtr &p_arc);
+    int AddArcIdx(const ArcPtr &p_arc);
 
     DISALLOW_COPY_AND_ASSIGN(Network);
 };
