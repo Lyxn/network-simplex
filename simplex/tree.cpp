@@ -20,7 +20,7 @@ int TreeAPI::InitBasisTree(const BasisArc &basis_arc, int root) {
         auto dst = key.second;
         auto p_arc = GetArc(src, dst);
         basis_arc_.insert(key);
-        p_arc->SetStatus(FLOW_TREE);
+        p_arc->SetStatus(FLOW_BASIS);
         GetNode(src)->AddNeighbor(dst);
         GetNode(dst)->AddNeighbor(src);
     }
@@ -31,7 +31,7 @@ int TreeAPI::InitBasisTree(const BasisArc &basis_arc, int root) {
     //Flow
     CalcBasisFlow(basis_arc);
     CalcBasisPrice();
-    CalcReducedCost();
+    UpdateReducedCost();
     return RET_SUCCESS;
 }
 
@@ -54,6 +54,9 @@ int TreeAPI::InitArtificialBasis() {
         }
     }
     InitBasisTree(basis_arc);
+    if (debug_) {
+        PrintTreeAndBasis(*this);
+    }
     return RET_SUCCESS;
 }
 
@@ -167,22 +170,24 @@ void TreeAPI::CalcBasisFlow(const BasisArc &basis_arc) {
     } while (true);
 }
 
-ArcPtr TreeAPI::GetBasisArc(int src, int dst) {
+ArcPtr TreeAPI::GetBasisArc(int src, int dst) const {
     auto p_arc = GetArc(src, dst);
-    if (p_arc != nullptr && p_arc->IsStatusTree()) {
+    if (p_arc != nullptr && p_arc->IsStatusBasis()) {
         return p_arc;
     } else {
         return GetArc(dst, src);
     }
 }
 
-void TreeAPI::CalcNodePrice(NodePtr refer, NodePtr unk) {
+double TreeAPI::CalcNodePrice(const NodePtr &refer, const NodePtr &unk) const {
+    double price = 0;
     auto p_arc = GetBasisArc(refer->node_id_, unk->node_id_);
     if (p_arc->GetSrcId() == refer->node_id_) {
-        unk->price_ = refer->price_ - p_arc->cost_;
+        price = refer->price_ - p_arc->cost_;
     } else {
-        unk->price_ = refer->price_ + p_arc->cost_;
+        price = refer->price_ + p_arc->cost_;
     }
+    return price;
 }
 
 void TreeAPI::CalcBasisPrice() {
@@ -197,12 +202,12 @@ void TreeAPI::CalcBasisPrice() {
         auto p_brother = GetNode(p_cur->brother_);
         if (p_brother != nullptr) {
             auto p_father = GetNode(p_brother->father_);
-            CalcNodePrice(p_father, p_brother);
+            p_brother->price_ = CalcNodePrice(p_father, p_brother);
             stk.push(p_brother->node_id_);
         }
         auto p_son = GetNode(p_cur->son_);
         if (p_son != nullptr) {
-            CalcNodePrice(p_cur, p_son);
+            p_son->price_ = CalcNodePrice(p_cur, p_son);
             stk.push(p_son->node_id_);
         }
     }
@@ -212,18 +217,23 @@ bool TreeAPI::IsBasisArc(const ArcKey &key) const {
     return HasValue(basis_arc_, key);
 }
 
-void TreeAPI::CalcReducedCost() {
+void TreeAPI::UpdateReducedCost() {
     for (auto &item: arc_idx_) {
-        auto key = item.first;
         auto p_arc = item.second;
-        if (IsBasisArc(key)) {
-            p_arc->reduced_cost_ = 0;
-        } else {
-            auto p_src = GetNode(p_arc->GetSrcId());
-            auto p_dst = GetNode(p_arc->GetDstId());
-            p_arc->reduced_cost_ = p_arc->cost_ - (p_src->price_ - p_dst->price_);
-        }
+        p_arc->reduced_cost_ = CalcReducedCost(p_arc);
     }
+}
+
+double TreeAPI::CalcReducedCost(const ArcPtr &p_arc) const {
+    double reduced_cost = 0;
+    if (p_arc->IsStatusBasis()) {
+        reduced_cost = 0;
+    } else {
+        auto p_src = GetNode(p_arc->GetSrcId());
+        auto p_dst = GetNode(p_arc->GetDstId());
+        reduced_cost = p_arc->cost_ - (p_src->price_ - p_dst->price_);
+    }
+    return reduced_cost;
 }
 
 double TreeAPI::GetTotalCost() const {
@@ -233,15 +243,6 @@ double TreeAPI::GetTotalCost() const {
         if (p_arc->IsStatusLower()) {
             continue;
         }
-        cost += p_arc->cost_ * p_arc->flow_;
-    }
-    return cost;
-}
-
-double TreeAPI::GetBasisCost() const {
-    double cost = 0;
-    for (auto &key: basis_arc_) {
-        auto p_arc = GetArc(key);
         cost += p_arc->cost_ * p_arc->flow_;
     }
     return cost;
@@ -267,6 +268,23 @@ NodePtr TreeAPI::FindNodeJoint(int src, int dst) {
         }
     } while (true);
     return nullptr;
+}
+
+std::set<int> TreeAPI::FindSuccessors(int nid) {
+    stack<int> stk;
+    stk.push(nid);
+    std::set<int> successors;
+    while (!stk.empty()) {
+        int cur = stk.top();
+        stk.pop();
+        auto p_cur = GetNode(cur);
+        if (p_cur != nullptr) {
+            successors.insert(p_cur->node_id_);
+            stk.push(p_cur->son_);
+            stk.push(p_cur->brother_);
+        }
+    }
+    return successors;
 }
 
 void PrintTree(const TreeAPI &tree) {
@@ -321,22 +339,33 @@ void PrintNonBasisArc(const TreeAPI &tree) {
     }
 }
 
+void PrintTreeAndBasis(const TreeAPI &tree) {
+    printf("Tree\n");
+    PrintTree(tree);
+    printf("Basis\n");
+    PrintBasisArc(tree);
+    printf("NonBasis\n");
+    PrintNonBasisArc(tree);
+    printf("TotalCost=%f\n", tree.GetTotalCost());
+}
+
 ArcPtr TreeAPI::FindArcIn() const {
     for (auto &it: arc_idx_) {
         if (IsBasisArc(it.first)) {
             continue;
         }
         auto p_arc = it.second;
-        if (p_arc->reduced_cost_ < 0 && p_arc->IsStatusLower()) {
+        double reduced_cost = CalcReducedCost(p_arc);
+        if (reduced_cost < 0 && p_arc->IsStatusLower()) {
             return p_arc;
-        } else if (p_arc->reduced_cost_ > 0 && p_arc->IsStatusUpper()) {
+        } else if (reduced_cost > 0 && p_arc->IsStatusUpper()) {
             return p_arc;
         }
     }
     return nullptr;
 }
 
-inline void UpdateArcDirection(ArcPtr refer, ArcPtr unk) {
+inline void UpdateArcDirection(const ArcPtr &refer, ArcPtr &unk) {
     if (refer->GetSrcId() == unk->GetSrcId() || refer->GetDstId() == unk->GetDstId()) {
         unk->direction_ = (refer->direction_ == D_POS) ? D_NEG : D_POS;
     } else {
@@ -344,8 +373,8 @@ inline void UpdateArcDirection(ArcPtr refer, ArcPtr unk) {
     }
 }
 
-void TreeAPI::UpdateCyclePath(ArcPtr &p_arc_in, int nid, std::vector<ArcPtr> &path) {
-    auto last_arc = p_arc_in;
+void TreeAPI::UpdateCyclePath(ArcPtr &arc_in, int nid, std::vector<ArcPtr> &path) {
+    auto last_arc = arc_in;
     auto last_node = GetNode(nid);
     while (last_node->node_id_ != cycle_.node_joint) {
         auto p_node = GetNode(last_node->father_);
@@ -397,16 +426,12 @@ ArcPtr TreeAPI::GetMinFlowArc() {
     ArcPtr min_arc;
     if (min_arc_src == nullptr) {
         min_arc = min_arc_dst;
-        cycle_.leaving_from_src = false;
     } else if (min_arc_dst == nullptr) {
         min_arc = min_arc_src;
-        cycle_.leaving_from_src = true;
     } else if (GetFlowCapacity(min_arc_src) > GetFlowCapacity(min_arc_dst)) {
         min_arc = min_arc_dst;
-        cycle_.leaving_from_src = false;
     } else {
         min_arc = min_arc_src;
-        cycle_.leaving_from_src = true;
     }
     return min_arc;
 }
@@ -422,7 +447,130 @@ ArcPtr TreeAPI::FindArcOut(const ArcPtr &arc_in) {
     UpdateCyclePath();
     //find min flow arc
     auto min_arc = GetMinFlowArc();
+    cycle_.arc_out = (min_arc == nullptr) ? INVALID_ARC_KEY : GetArcKey(min_arc);
     return min_arc;
+}
+
+inline void UpdateArcFlow(ArcPtr &arc, int flow) {
+    if (arc->direction_ == D_POS) {
+        arc->flow_ += flow;
+    } else {
+        arc->flow_ -= flow;
+    }
+}
+
+inline void UpdatePathFlow(std::vector<ArcPtr> &path, int flow) {
+    for (auto &arc: path) {
+        UpdateArcFlow(arc, flow);
+    }
+}
+
+void TreeAPI::UpdateCycleFlow(ArcPtr &arc_in, ArcPtr &arc_out) {
+    int flow = GetFlowCapacity(arc_out);
+    UpdateArcFlow(arc_in, flow);
+    UpdatePathFlow(cycle_.path_src, flow);
+    UpdatePathFlow(cycle_.path_dst, flow);
+}
+
+void TreeAPI::UpdateBasisArc(ArcPtr &arc_in, ArcPtr &arc_out) {
+    arc_in->status_ = FLOW_BASIS;
+    arc_out->status_ = (arc_out->flow_ == 0) ? FLOW_LOWER : FLOW_UPPER;
+    basis_arc_.erase(GetArcKey(arc_out));
+    basis_arc_.insert(GetArcKey(arc_in));
+}
+
+void TreeAPI::UpdateNodePrice(const std::set<int> &tree_upd, ArcPtr &arc_in) {
+    double reduced_cost = CalcReducedCost(arc_in);
+    double delta = HasValue(tree_upd, arc_in->GetSrcId()) ? reduced_cost : -reduced_cost;
+    for (auto nid: tree_upd) {
+        auto p_node = GetNode(nid);
+        p_node->price_ += delta;
+    }
+}
+
+void TreeAPI::UpdateTree(ArcPtr &arc_in, ArcPtr &arc_out) {
+    auto out_src = GetNode(arc_out->GetSrcId());
+    auto out_dst = GetNode(arc_out->GetDstId());
+    NodePtr out_upd;
+    if (out_src->father_ == out_dst->node_id_) {
+        out_upd = out_src;
+    } else {
+        out_upd = out_dst;
+    }
+    auto tree_upd = FindSuccessors(out_upd->node_id_);
+    if (debug_) {
+        printf("Update Node=%d TreeSize=%d\n", out_upd->node_id_, tree_upd.size());
+    }
+    UpdateNodePrice(tree_upd, arc_in);
+    UpdateTreeStruct(tree_upd, arc_in, out_upd);
+}
+
+void TreeAPI::UpdateTreeStruct(const std::set<int> &tree_upd, ArcPtr &arc_in, NodePtr &out_upd) {
+    NodePtr in_upd;
+    NodePtr in_root;
+    if (HasValue(tree_upd, arc_in->GetSrcId())) {
+        in_upd = GetNode(arc_in->GetSrcId());
+        in_root = GetNode(arc_in->GetDstId());
+    } else {
+        in_upd = GetNode(arc_in->GetDstId());
+        in_root = GetNode(arc_in->GetSrcId());
+    }
+    AddChild(in_root, in_upd);
+    NodePtr cur_node = in_upd;
+    int new_father = in_root->node_id_;
+    while (cur_node->node_id_ != out_upd->node_id_) {
+        auto p_old_father = GetNode(cur_node->father_);
+        AddChild(cur_node, p_old_father);
+        DelChild(p_old_father, cur_node);
+        cur_node->father_ = new_father;
+        new_father = cur_node->node_id_;
+        cur_node = p_old_father;
+    }
+    auto out_root = GetNode(out_upd->father_);
+    DelChild(out_root, out_upd);
+    out_upd->father_ = new_father;
+    //update depth
+    in_upd->depth_ += in_root->depth_ += 1;
+    UpdateDepth(in_upd->node_id_);
+}
+
+void TreeAPI::AddChild(NodePtr &node, NodePtr &child) {
+    auto son = GetNode(node->son_);
+    if (son == nullptr) {
+        node->son_ = child->node_id_;
+        return;
+    }
+    while (son->brother_ != INVALID_NODE_ID) {
+        son = GetNode(son->brother_);
+    }
+    son->brother_ = child->node_id_;
+}
+
+void TreeAPI::DelChild(NodePtr &node, NodePtr &child) {
+    auto son = GetNode(node->son_);
+    if (son->node_id_ == child->node_id_) {
+        node->son_ = child->brother_;
+        child->brother_ = INVALID_NODE_ID;
+        return;
+    }
+
+    while (son != nullptr) {
+        if (son->brother_ == child->node_id_) {
+            son->brother_ = child->brother_;
+            child->brother_ = INVALID_NODE_ID;
+            break;
+        }
+        son = GetNode(son->brother_);
+    }
+}
+
+void TreeAPI::Pivot(ArcPtr &arc_in, ArcPtr &arc_out) {
+    //Update Flow
+    UpdateCycleFlow(arc_in, arc_out);
+    //Update Tree
+    UpdateTree(arc_in, arc_out);
+    //Update Basis
+    UpdateBasisArc(arc_in, arc_out);
 }
 
 int TreeAPI::RunSimplex(int max_iter) {
@@ -439,6 +587,7 @@ int TreeAPI::RunSimplex(int max_iter) {
             break;
         }
 
+        Pivot(arc_in, arc_out);
         if (iter >= max_iter) {
             printf("Problem failed.\nIteration=%d Cost=%f\n", iter, GetTotalCost());
             PrintArc();
@@ -449,6 +598,11 @@ int TreeAPI::RunSimplex(int max_iter) {
         cycle_.Clear();
         iter += 1;
     } while (true);
+    if (debug_) {
+        UpdateReducedCost();
+        printf("Final Result\n");
+        PrintTreeAndBasis(*this);
+    }
     return RET_SUCCESS;
 }
 

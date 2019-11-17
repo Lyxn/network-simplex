@@ -21,7 +21,7 @@ class Node {
 public:
     Node() = delete;
 
-    Node(int node_id, int supply);
+    Node(int node_id, int supply, bool is_artificial = false);
 
     virtual ~Node() = default;
 
@@ -40,6 +40,7 @@ public:
 public:
     int node_id_;
     int supply_;
+    bool is_artificial_;
     std::set<int> arc_dst_;
     std::set<int> neighbor_;
 
@@ -50,7 +51,6 @@ public:
     int son_;
     int brother_;
     int depth_;
-    int num_succ_;
 
     //Price
     double price_;

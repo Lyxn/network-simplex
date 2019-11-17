@@ -36,9 +36,21 @@ int TestTree0() {
     printf("NonBasis\n");
     PrintNonBasisArc(tree);
     printf("TotalCost=%f\n", tree.GetTotalCost());
+}
+
+int TestSimplex0() {
+    string filename = "../data/test.nwk";
+    TreeAPI tree{};
+    ReadNetwork(filename, tree);
+    auto basis_arc = MockBasis0();
+    int root = 3;
+    tree.InitBasisTree(basis_arc, root);
+    printf("Before\n");
+    PrintTreeAndBasis(tree);
+    tree.debug_ = true;
     tree.RunSimplex();
 }
 
 int main() {
-    TestTree0();
+    TestSimplex0();
 }

@@ -19,11 +19,8 @@ typedef struct cycle_t {
     int node_joint{};
     std::vector<ArcPtr> path_src;
     std::vector<ArcPtr> path_dst;
-    bool leaving_from_src;
 
     cycle_t();
-
-    cycle_t(const ArcKey &arc);
 
     void Clear();
 } Cycle;

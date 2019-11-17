@@ -60,19 +60,21 @@ void Network::Clear() {
     max_cost_ = 0.0;
 }
 
-void Network::AddNode(int nid, int supply) {
-    NodePtr node(new Node(nid, supply));
+void Network::AddNode(int nid, int supply, bool is_artificial) {
+    NodePtr node(new Node(nid, supply, is_artificial));
     nodes_.insert({nid, node});
 }
 
 int Network::AddArc(int src, int dst, double cost, int capacity, bool is_artificial) {
-    max_cost_ += cost;
     int aid = GetArcNum();
     ArcPtr arc(new Arc(aid, src, dst, cost, capacity, is_artificial));
 //    printf("Arc %d src %d dst %d\n", aid, src, dst);
     arcs_.insert({aid, arc});
     nodes_[src]->AddArdDst(dst);
     AddArcIdx(arc);
+    if (!is_artificial) {
+        max_cost_ += cost;
+    }
     return aid;
 }
 
@@ -81,7 +83,7 @@ int Network::AddArc(int src, int dst, double cost, int capacity) {
 }
 
 int Network::AddArtificialArc(int src, int dst) {
-    return AddArc(src, dst, 0, MAX_CAPACITY, true);
+    return AddArc(src, dst, max_cost_, MAX_CAPACITY, true);
 }
 
 int Network::AddArcIdx(const ArcPtr &p_arc) {

@@ -18,7 +18,7 @@ const int MAX_CAPACITY = INT_MAX;
 enum FlowStatus {
     FLOW_LOWER = 0,
     FLOW_UPPER = 1,
-    FLOW_TREE = 2,
+    FLOW_BASIS = 2,
 };
 
 enum Direction {
@@ -44,7 +44,7 @@ public:
 
     int GetNeighbor(int node_id) const;
 
-    bool IsStatusTree() const;
+    bool IsStatusBasis() const;
 
     bool IsStatusUpper() const;
 

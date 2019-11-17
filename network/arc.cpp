@@ -48,8 +48,8 @@ int Arc::GetNeighbor(int node_id) const {
     }
 }
 
-bool Arc::IsStatusTree() const {
-    return status_ == FLOW_TREE;
+bool Arc::IsStatusBasis() const {
+    return status_ == FLOW_BASIS;
 }
 
 bool Arc::IsStatusUpper() const {

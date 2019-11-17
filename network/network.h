@@ -36,7 +36,7 @@ public:
 
     void Clear();
 
-    void AddNode(int nid, int supply);
+    void AddNode(int nid, int supply, bool is_artificial = false);
 
     int AddArc(int src, int dst, double cost, int capacity, bool is_artificial);
 

@@ -6,16 +6,18 @@
 
 namespace network {
 
-Node::Node(int node_id, int supply) : node_id_(node_id),
-                                      supply_(supply),
-                                      is_root_(false),
-                                      is_leaf_(false),
-                                      father_(INVALID_NODE_ID),
-                                      son_(INVALID_NODE_ID),
-                                      brother_(INVALID_NODE_ID),
-                                      depth_(0),
-                                      num_succ_(0),
-                                      price_(MAX_PRICE) {}
+Node::Node(int node_id,
+           int supply,
+           bool is_artificial) : node_id_(node_id),
+                                 supply_(supply),
+                                 is_artificial_(is_artificial),
+                                 is_root_(false),
+                                 is_leaf_(false),
+                                 father_(INVALID_NODE_ID),
+                                 son_(INVALID_NODE_ID),
+                                 brother_(INVALID_NODE_ID),
+                                 depth_(0),
+                                 price_(MAX_PRICE) {}
 
 void Node::set_root() {
     is_root_ = true;
