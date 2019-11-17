@@ -24,12 +24,12 @@ set(SRC_FILES
         simplex/tree.cpp
         simplex/tree.h)
 
-add_library(netopt
+add_library(netflow
         ${SRC_FILES})
 
-link_libraries(netopt)
+link_libraries(netflow)
 
-add_executable(test_main main.cpp)
+add_executable(cnet main.cpp)
 
 add_executable(test_utils test/test_utils.cpp)
 

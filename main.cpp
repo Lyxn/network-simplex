@@ -1,3 +1,7 @@
+//
+// Created by LyxnO on 2019/11/16.
+//
+
 #include <iostream>
 
 #include "tree.h"
@@ -7,7 +11,7 @@ using namespace std;
 using namespace network;
 
 int main(int argc, char *argv[]) {
-    if (argc <= 2) {
+    if (argc < 2) {
         auto self = argv[0];
         printf("USAGE:\n%s $FILE_NWK [$DEBUG]\n", self);
         return 0;
@@ -20,5 +24,6 @@ int main(int argc, char *argv[]) {
     ReadNetwork(filename, tree);
     tree.InitArtificialBasis();
     tree.RunSimplex();
+    PrintArcFlow(tree);
     return 0;
 }

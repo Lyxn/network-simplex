@@ -54,9 +54,6 @@ int TreeAPI::InitArtificialBasis() {
         }
     }
     InitBasisTree(basis_arc);
-    if (debug_) {
-        PrintTreeAndBasis(*this);
-    }
     return RET_SUCCESS;
 }
 
@@ -270,10 +267,13 @@ NodePtr TreeAPI::FindNodeJoint(int src, int dst) {
     return nullptr;
 }
 
-std::set<int> TreeAPI::FindSuccessors(int nid) {
+std::set<int> TreeAPI::FindChildren(NodePtr &node) {
+    std::set<int> successors{node->node_id_};
     stack<int> stk;
-    stk.push(nid);
-    std::set<int> successors;
+    auto son = GetNode(node->son_);
+    if (son != nullptr) {
+        stk.push(son->node_id_);
+    }
     while (!stk.empty()) {
         int cur = stk.top();
         stk.pop();
@@ -285,6 +285,15 @@ std::set<int> TreeAPI::FindSuccessors(int nid) {
         }
     }
     return successors;
+}
+
+void PrintNode(const NodePtr &p_node) {
+    printf("%d\t%d\t%d\t%0.1f\n",
+           p_node->node_id_,
+           p_node->depth_,
+           p_node->supply_,
+           p_node->price_
+    );
 }
 
 void PrintTree(const TreeAPI &tree) {
@@ -309,13 +318,15 @@ void PrintTree(const TreeAPI &tree, const std::string &prefix, int nid) {
 }
 
 void PrintArc() {
-    printf("src\tdst\tflow\tcost\treduced\n");
+    printf("src\tdst\tcapacity\tflow\tcost\treduced\n");
 }
 
 void PrintArc(const ArcPtr &p_arc) {
-    printf("%d\t%d\t%d\t%0.1f\t%0.1f\n",
+    int capacity = (p_arc->capacity_ == MAX_CAPACITY) ? 0 : p_arc->capacity_;
+    printf("%d\t%d\t%d\t%d\t%0.1f\t%0.1f\n",
            p_arc->src_id_,
            p_arc->dst_id_,
+           capacity,
            p_arc->flow_,
            p_arc->cost_,
            p_arc->reduced_cost_
@@ -326,6 +337,17 @@ void PrintBasisArc(const TreeAPI &tree) {
     PrintArc();
     for (auto &key: tree.basis_arc_) {
         auto p_arc = tree.GetArc(key);
+        PrintArc(p_arc);
+    }
+}
+
+void PrintArcFlow(const TreeAPI &tree) {
+    printf("src\tdst\tcap\tflow\tcost\treduced\n");
+    for (auto &it: tree.arc_idx_) {
+        auto p_arc = it.second;
+        if (p_arc->flow_ == 0) {
+            continue;
+        }
         PrintArc(p_arc);
     }
 }
@@ -485,6 +507,7 @@ void TreeAPI::UpdateNodePrice(const std::set<int> &tree_upd, ArcPtr &arc_in) {
     for (auto nid: tree_upd) {
         auto p_node = GetNode(nid);
         p_node->price_ += delta;
+//        PrintNode(p_node);
     }
 }
 
@@ -497,9 +520,10 @@ void TreeAPI::UpdateTree(ArcPtr &arc_in, ArcPtr &arc_out) {
     } else {
         out_upd = out_dst;
     }
-    auto tree_upd = FindSuccessors(out_upd->node_id_);
+    auto tree_upd = FindChildren(out_upd);
     if (debug_) {
-        printf("Update Node=%d TreeSize=%d\n", out_upd->node_id_, tree_upd.size());
+        printf("ArcOut(%d, %d) Update Node=%d TreeSize=%d\n",
+               arc_out->GetSrcId(), arc_out->GetDstId(), out_upd->node_id_, tree_upd.size());
     }
     UpdateNodePrice(tree_upd, arc_in);
     UpdateTreeStruct(tree_upd, arc_in, out_upd);
@@ -576,6 +600,7 @@ void TreeAPI::Pivot(ArcPtr &arc_in, ArcPtr &arc_out) {
 int TreeAPI::RunSimplex(int max_iter) {
     int iter = 1;
     do {
+        cycle_.Clear();
         auto arc_in = FindArcIn();
         if (arc_in == nullptr) {
             printf("Problem solved.\nIteration=%d Cost=%f\n", iter, GetTotalCost());
@@ -595,14 +620,16 @@ int TreeAPI::RunSimplex(int max_iter) {
             PrintArc(arc_out);
             break;
         }
-        cycle_.Clear();
+        if (debug_) {
+            printf("Iteration %d\n", iter);
+            printf("Cycle\n");
+            PrintArc(arc_in);
+            PrintArc(arc_out);
+            PrintNode(GetNode(cycle_.node_joint));
+        }
         iter += 1;
     } while (true);
-    if (debug_) {
-        UpdateReducedCost();
-        printf("Final Result\n");
-        PrintTreeAndBasis(*this);
-    }
+    UpdateReducedCost();
     return RET_SUCCESS;
 }
 

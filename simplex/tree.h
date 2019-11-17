@@ -40,7 +40,7 @@ public:
 
     NodePtr FindNodeJoint(int src, int dst);
 
-    std::set<int> FindSuccessors(int nid);
+    std::set<int> FindChildren(NodePtr &node);
 
     int RunSimplex(int max_iter = 100);
 
@@ -100,6 +100,8 @@ void PrintBasisArc(const TreeAPI &tree);
 void PrintNonBasisArc(const TreeAPI &tree);
 
 void PrintTreeAndBasis(const TreeAPI &tree);
+
+void PrintArcFlow(const TreeAPI &tree);
 
 }
 
