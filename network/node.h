@@ -44,14 +44,12 @@ public:
     std::set<int> neighbor_;
 
     //Spanning Tree
-    int is_root_;
+    bool is_root_;
     int is_leaf_;
-    int depth_;
-    int pred_;
-
-    //XPI
+    int father_;
     int son_;
     int brother_;
+    int depth_;
     int num_succ_;
 
     //Price

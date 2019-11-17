@@ -19,8 +19,8 @@ Arc::Arc(int arc_id,
                               _is_artificial_(is_artificial) {
     flow_ = 0;
     reduced_cost_ = 0.0;
-    status_ = FLOW_NONE;
-    direction_ = D_NONE;
+    status_ = FLOW_LOWER;
+    direction_ = D_POS;
 }
 
 Arc::Arc(int arc_id, int src_id, int dst_id, double cost, int capacity) :

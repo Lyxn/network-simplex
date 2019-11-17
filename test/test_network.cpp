@@ -14,7 +14,7 @@ using namespace network;
 void PrintPath(const Network &nwk, const vector<int> &path) {
     for (int nid: path) {
         auto p_node = nwk.GetNode(nid);
-        auto p_arc = nwk.GetArc(nid, p_node->pred_);
+        auto p_arc = nwk.GetArc(nid, p_node->father_);
         double cost = (p_arc == nullptr) ? 0 : p_arc->cost_;
         cout << *p_node
              << " cost: " << cost

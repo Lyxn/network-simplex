@@ -22,6 +22,10 @@ typedef std::shared_ptr<Node> NodePtr;
 typedef BiKeyInt ArcKey;
 typedef std::unordered_map<ArcKey, ArcPtr, HashBiKeyInt> ArcPtrMap;
 
+inline ArcKey GetArcKey(const ArcPtr &p_arc) {
+    return {p_arc->GetSrcId(), p_arc->GetDstId()};
+}
+
 class Network {
 public:
     Network() = default;
@@ -38,7 +42,7 @@ public:
 
     int AddArc(int src, int dst, double cost, int capacity);
 
-    int AddArc(int src, int dst);
+    int AddArtificialArc(int src, int dst);
 
     ArcPtr GetArc(int aid) const;
 

@@ -82,7 +82,7 @@ int FindShortestPathBellman(Network &nwk, int dst) {
     }
     auto p_dst = nwk.GetNode(dst);
     p_dst->price_ = 0;
-    p_dst->pred_ = INVALID_NODE_ID;
+    p_dst->father_ = INVALID_NODE_ID;
     do {
         bool has_change = false;
         for (auto &it: nwk.arcs_) {
@@ -98,7 +98,7 @@ int FindShortestPathBellman(Network &nwk, int dst) {
             double price = p_arc->cost_ + p_arc_dst->price_;
             if (p_arc_src->price_ > price) {
                 p_arc_src->price_ = price;
-                p_arc_src->pred_ = p_arc->dst_id_;
+                p_arc_src->father_ = p_arc->dst_id_;
                 has_change = true;
             }
         }
@@ -115,7 +115,7 @@ int FindShortestPathDijkstra(Network &nwk, int dst) {
     }
     auto p_dst = nwk.GetNode(dst);
     p_dst->price_ = 0;
-    p_dst->pred_ = INVALID_NODE_ID;
+    p_dst->father_ = INVALID_NODE_ID;
     std::set<int> node_shortest;
     do {
         // find min node
@@ -149,7 +149,7 @@ int FindShortestPathDijkstra(Network &nwk, int dst) {
                 }
                 double price = p_arc->cost_ + p_arc_dst->price_;
                 if (p_node->price_ > price) {
-                    p_node->pred_ = arc_dst;
+                    p_node->father_ = arc_dst;
                     p_node->price_ = price;
                 }
             }
@@ -169,7 +169,7 @@ std::vector<int> GetPath(const Network &nwk, int src) {
             printf("ERROR NodeID=%d", next);
             break;
         }
-        next = p_src->pred_;
+        next = p_src->father_;
     }
     return path;
 }

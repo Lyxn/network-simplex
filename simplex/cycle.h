@@ -11,12 +11,22 @@
 
 namespace network {
 
-class Cycle {
-public:
-    int arc_in_;
-    int arc_out_;
-    int node_join_;
-};
+const ArcKey INVALID_ARC_KEY = {INVALID_NODE_ID, INVALID_NODE_ID};
+
+typedef struct cycle_t {
+    ArcKey arc_in;
+    ArcKey arc_out;
+    int node_joint{};
+    std::vector<ArcPtr> path_src;
+    std::vector<ArcPtr> path_dst;
+    bool leaving_from_src;
+
+    cycle_t();
+
+    cycle_t(const ArcKey &arc);
+
+    void Clear();
+} Cycle;
 
 }
 

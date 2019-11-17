@@ -11,7 +11,7 @@
 using namespace std;
 using namespace network;
 
-BasisArc MockBasisArc() {
+BasisArc MockBasis0() {
     BasisArc basis_arc{
     {1, 2},
     {3, 0},
@@ -21,22 +21,24 @@ BasisArc MockBasisArc() {
     return basis_arc;
 }
 
-int TestInitTree() {
+int TestTree0() {
     string filename = "../data/test.nwk";
     TreeAPI tree{};
     ReadNetwork(filename, tree);
-    auto basis_arc = MockBasisArc();
+    auto basis_arc = MockBasis0();
     int root = 0;
     tree.InitBasisTree(basis_arc, root);
+//    tree.InitArtificialBasis();
     printf("Tree\n");
     PrintTree(tree);
     printf("Basis\n");
     PrintBasisArc(tree);
     printf("NonBasis\n");
     PrintNonBasisArc(tree);
-    printf("TotalCost=%f", tree.GetTotalCost());
+    printf("TotalCost=%f\n", tree.GetTotalCost());
+    tree.RunSimplex();
 }
 
 int main() {
-    TestInitTree();
+    TestTree0();
 }

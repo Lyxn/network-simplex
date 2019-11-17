@@ -16,16 +16,14 @@ const int INVALID_ARC_ID = -1;
 const int MAX_CAPACITY = INT_MAX;
 
 enum FlowStatus {
-    FLOW_NONE = 0,
-    FLOW_LOWER = 1,
-    FLOW_UPPER = 2,
-    FLOW_TREE = 3,
+    FLOW_LOWER = 0,
+    FLOW_UPPER = 1,
+    FLOW_TREE = 2,
 };
 
 enum Direction {
-    D_NONE = 0,
-    D_DOWN = 1,
-    D_UP = 2,
+    D_POS = 0,
+    D_NEG = 1,
 };
 
 class Arc {

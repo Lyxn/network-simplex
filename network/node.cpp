@@ -10,17 +10,17 @@ Node::Node(int node_id, int supply) : node_id_(node_id),
                                       supply_(supply),
                                       is_root_(false),
                                       is_leaf_(false),
-                                      pred_(INVALID_NODE_ID),
-                                      depth_(0),
+                                      father_(INVALID_NODE_ID),
                                       son_(INVALID_NODE_ID),
                                       brother_(INVALID_NODE_ID),
+                                      depth_(0),
                                       num_succ_(0),
                                       price_(MAX_PRICE) {}
 
 void Node::set_root() {
     is_root_ = true;
     depth_ = 0;
-    pred_ = INVALID_NODE_ID;
+    father_ = INVALID_NODE_ID;
     brother_ = INVALID_NODE_ID;
 }
 
@@ -44,7 +44,7 @@ std::ostream &operator<<(std::ostream &os, const Node &node) {
     os << "node_id: " << node.node_id_
        //<< " supply: " << node.supply_
        //<< " depth: " << node.depth_
-       << " pred: " << node.pred_
+       << " father: " << node.father_
        << " price: " << node.price_;
     return os;
 }

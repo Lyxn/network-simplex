@@ -80,7 +80,7 @@ int Network::AddArc(int src, int dst, double cost, int capacity) {
     return AddArc(src, dst, cost, capacity, false);
 }
 
-int Network::AddArc(int src, int dst) {
+int Network::AddArtificialArc(int src, int dst) {
     return AddArc(src, dst, 0, MAX_CAPACITY, true);
 }
 
