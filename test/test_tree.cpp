@@ -51,7 +51,7 @@ int TestSimplex0() {
 }
 
 int TestSimplex1() {
-    string filename = "../data/beispiel.nwk";
+    string filename = "../data/perterson.nwk";
     TreeAPI tree{};
     ReadNetwork(filename, tree);
     tree.InitArtificialBasis();

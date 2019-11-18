@@ -47,22 +47,26 @@ int ReadNetwork(const std::string &filename, Network &nwk) {
         return RET_FAIL;
     }
     string line;
+    int num_node;
+    getline(infile, line);
+    ParseStr(line, num_node);
     while (getline(infile, line)) {
         vector<string> items;
         SplitStr(line, ":", items);
-        if (items.size() < 2) {
+        if (items.size() != 2) {
             continue;
         }
-
         //Node
         string node_str = items[0];
         int nid;
         int supply;
         ParseNodeInfo(node_str, nid, supply);
         nwk.AddNode(nid, supply);
-
         //Arcs
         string arc_str = items[1];
+        if (arc_str.empty()) {
+            continue;
+        }
         vector<string> arc_vec;
         SplitStr(arc_str, ";", arc_vec);
         for (auto &arc: arc_vec) {
@@ -73,6 +77,13 @@ int ReadNetwork(const std::string &filename, Network &nwk) {
             nwk.AddArc(nid, dst, cost, capacity);
         }
     }
+    if (num_node != nwk.GetNodeNum()) {
+        printf("the node num %d is not the same as the file num %d", nwk.GetNodeNum(), num_node);
+        return RET_ERROR;
+    }
+    std::cout << "Network Nodes: " << nwk.GetNodeNum()
+              << " Arcs: " << nwk.GetArcNum()
+              << std::endl;
     return RET_SUCCESS;
 }
 
