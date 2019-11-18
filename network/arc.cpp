@@ -72,4 +72,10 @@ int Arc::GetDstId() const {
     return dst_id_;
 }
 
+std::ostream &operator<<(std::ostream &os, const Arc &arc) {
+    os << "src: " << arc.src_id_ << " dst: " << arc.dst_id_ << " cost: " << arc.cost_ << " cap: "
+       << arc.capacity_ << " flow: " << arc.flow_ << " dir: " << arc.direction_;
+    return os;
+}
+
 }

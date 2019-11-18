@@ -6,6 +6,7 @@
 #define NETWORK_SIMPLEX_ARC_H
 
 #include <climits>
+#include <ostream>
 
 #include "common.h"
 #include "node.h"
@@ -55,6 +56,8 @@ public:
     int GetSrcId() const;
 
     int GetDstId() const;
+
+    friend std::ostream &operator<<(std::ostream &os, const Arc &arc);
 
 public:
     int arc_id_;

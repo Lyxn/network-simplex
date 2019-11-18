@@ -21,9 +21,13 @@ int main(int argc, char *argv[]) {
 
     TreeAPI tree{};
     tree.debug_ = debug;
-    ReadNetwork(filename, tree);
+    int ret = ReadNetwork(filename, tree);
+    if (ret != RET_SUCCESS) {
+        return ret;
+    }
     tree.InitArtificialBasis();
     tree.RunSimplex();
+    PrintTree(tree);
     PrintArcFlow(tree);
     return 0;
 }

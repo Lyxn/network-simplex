@@ -50,6 +50,16 @@ int TestSimplex0() {
     tree.RunSimplex();
 }
 
+int TestSimplex1() {
+    string filename = "../data/beispiel.nwk";
+    TreeAPI tree{};
+    ReadNetwork(filename, tree);
+    tree.InitArtificialBasis();
+    tree.debug_ = true;
+    tree.RunSimplex(9);
+    PrintTreeAndBasis(tree);
+}
+
 int main() {
-    TestSimplex0();
+    TestSimplex1();
 }

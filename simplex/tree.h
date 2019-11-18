@@ -42,7 +42,7 @@ public:
 
     std::set<int> FindChildren(NodePtr &node);
 
-    int RunSimplex(int max_iter = 100);
+    int RunSimplex(int max_iter = 100000);
 
 public:
     int root_{};
@@ -69,7 +69,7 @@ private:
 
     void UpdateCyclePath(ArcPtr &arc_in, int nid, std::vector<ArcPtr> &path);
 
-    ArcPtr GetMinFlowArc();
+    ArcPtr GetMinFlowArc(const ArcPtr &arc_in);
 
     ArcPtr FindArcOut(const ArcPtr &arc_in);
 

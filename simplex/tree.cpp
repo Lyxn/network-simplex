@@ -5,6 +5,7 @@
 #include "tree.h"
 
 #include <stack>
+#include <iostream>
 
 #include "utils.h"
 #include "cycle.h"
@@ -318,16 +319,17 @@ void PrintTree(const TreeAPI &tree, const std::string &prefix, int nid) {
 }
 
 void PrintArc() {
-    printf("src\tdst\tcapacity\tflow\tcost\treduced\n");
+    printf("src\tdst\tcap\tflow\tdir\tcost\tred\n");
 }
 
 void PrintArc(const ArcPtr &p_arc) {
     int capacity = (p_arc->capacity_ == MAX_CAPACITY) ? 0 : p_arc->capacity_;
-    printf("%d\t%d\t%d\t%d\t%0.1f\t%0.1f\n",
+    printf("%d\t%d\t%d\t%d\t%d\t%0.1f\t%0.1f\n",
            p_arc->src_id_,
            p_arc->dst_id_,
            capacity,
            p_arc->flow_,
+           p_arc->direction_,
            p_arc->cost_,
            p_arc->reduced_cost_
     );
@@ -342,7 +344,7 @@ void PrintBasisArc(const TreeAPI &tree) {
 }
 
 void PrintArcFlow(const TreeAPI &tree) {
-    printf("src\tdst\tcap\tflow\tcost\treduced\n");
+    PrintArc();
     for (auto &it: tree.arc_idx_) {
         auto p_arc = it.second;
         if (p_arc->flow_ == 0) {
@@ -421,9 +423,7 @@ void TreeAPI::UpdateCyclePath() {
 
 inline int GetFlowCapacity(const ArcPtr &p_arc) {
     if (p_arc->direction_ == D_POS) {
-        auto capacity = (p_arc->capacity_ == MAX_CAPACITY) ?
-                        MAX_CAPACITY : p_arc->capacity_ - p_arc->flow_;
-        return capacity;
+        return p_arc->capacity_ - p_arc->flow_;
     } else {
         return p_arc->flow_;
     }
@@ -442,7 +442,7 @@ inline ArcPtr FindMinFlow(const std::vector<ArcPtr> &path) {
     return min_arc;
 }
 
-ArcPtr TreeAPI::GetMinFlowArc() {
+ArcPtr TreeAPI::GetMinFlowArc(const ArcPtr &arc_in) {
     auto min_arc_src = FindMinFlow(cycle_.path_src);
     auto min_arc_dst = FindMinFlow(cycle_.path_dst);
     ArcPtr min_arc;
@@ -454,6 +454,10 @@ ArcPtr TreeAPI::GetMinFlowArc() {
         min_arc = min_arc_dst;
     } else {
         min_arc = min_arc_src;
+    }
+    //entering arc is also leaving arc
+    if (GetFlowCapacity(min_arc) > GetFlowCapacity(arc_in)) {
+        min_arc = arc_in;
     }
     return min_arc;
 }
@@ -468,7 +472,7 @@ ArcPtr TreeAPI::FindArcOut(const ArcPtr &arc_in) {
     //update cycle path
     UpdateCyclePath();
     //find min flow arc
-    auto min_arc = GetMinFlowArc();
+    auto min_arc = GetMinFlowArc(arc_in);
     cycle_.arc_out = (min_arc == nullptr) ? INVALID_ARC_KEY : GetArcKey(min_arc);
     return min_arc;
 }
@@ -497,8 +501,8 @@ void TreeAPI::UpdateCycleFlow(ArcPtr &arc_in, ArcPtr &arc_out) {
 void TreeAPI::UpdateBasisArc(ArcPtr &arc_in, ArcPtr &arc_out) {
     arc_in->status_ = FLOW_BASIS;
     arc_out->status_ = (arc_out->flow_ == 0) ? FLOW_LOWER : FLOW_UPPER;
-    basis_arc_.erase(GetArcKey(arc_out));
     basis_arc_.insert(GetArcKey(arc_in));
+    basis_arc_.erase(GetArcKey(arc_out));
 }
 
 void TreeAPI::UpdateNodePrice(const std::set<int> &tree_upd, ArcPtr &arc_in) {
@@ -507,7 +511,6 @@ void TreeAPI::UpdateNodePrice(const std::set<int> &tree_upd, ArcPtr &arc_in) {
     for (auto nid: tree_upd) {
         auto p_node = GetNode(nid);
         p_node->price_ += delta;
-//        PrintNode(p_node);
     }
 }
 
@@ -554,7 +557,7 @@ void TreeAPI::UpdateTreeStruct(const std::set<int> &tree_upd, ArcPtr &arc_in, No
     DelChild(out_root, out_upd);
     out_upd->father_ = new_father;
     //update depth
-    in_upd->depth_ += in_root->depth_ += 1;
+    in_upd->depth_ = in_root->depth_ + 1;
     UpdateDepth(in_upd->node_id_);
 }
 
@@ -591,6 +594,10 @@ void TreeAPI::DelChild(NodePtr &node, NodePtr &child) {
 void TreeAPI::Pivot(ArcPtr &arc_in, ArcPtr &arc_out) {
     //Update Flow
     UpdateCycleFlow(arc_in, arc_out);
+    if (arc_in->arc_id_ == arc_out->arc_id_) {
+        arc_out->status_ = (arc_out->flow_ == 0) ? FLOW_LOWER : FLOW_UPPER;
+        return;
+    }
     //Update Tree
     UpdateTree(arc_in, arc_out);
     //Update Basis
@@ -611,7 +618,20 @@ int TreeAPI::RunSimplex(int max_iter) {
             printf("Problem unbound.\nIteration=%d Cost=%f\n", iter, GetTotalCost());
             break;
         }
-
+        if (debug_) {
+            printf("Iteration %d\n", iter);
+            PrintTreeAndBasis(*this);
+            printf("Cycle\n");
+            std::cout << "ArcIn: " << *arc_in
+                      << " reduced: " << CalcReducedCost(arc_in)
+                      << " volume: " << GetFlowCapacity(arc_in)
+                      << std::endl;
+            std::cout << "ArcOut: " << *arc_out
+                      << " reduced: " << CalcReducedCost(arc_out)
+                      << " volume: " << GetFlowCapacity(arc_out)
+                      << std::endl;
+            PrintNode(GetNode(cycle_.node_joint));
+        }
         Pivot(arc_in, arc_out);
         if (iter >= max_iter) {
             printf("Problem failed.\nIteration=%d Cost=%f\n", iter, GetTotalCost());
@@ -619,13 +639,6 @@ int TreeAPI::RunSimplex(int max_iter) {
             PrintArc(arc_in);
             PrintArc(arc_out);
             break;
-        }
-        if (debug_) {
-            printf("Iteration %d\n", iter);
-            printf("Cycle\n");
-            PrintArc(arc_in);
-            PrintArc(arc_out);
-            PrintNode(GetNode(cycle_.node_joint));
         }
         iter += 1;
     } while (true);
