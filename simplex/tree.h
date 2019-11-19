@@ -40,8 +40,6 @@ public:
 
     NodePtr FindNodeJoint(int src, int dst);
 
-    std::set<int> FindChildren(NodePtr &node);
-
     int RunSimplex(int max_iter = 100000);
 
 public:
@@ -50,6 +48,8 @@ public:
     Cycle cycle_{};
     ArcSet candidate_arcs_; //TODO collect the candidate arcs
     bool debug_{};
+    int num_seq_{};
+    int offset_{};
 
 private:
     void CalcBasisFlow(const BasisArc &basis_arc);
@@ -63,6 +63,8 @@ private:
     double CalcReducedCost(const ArcPtr &p_arc) const;
 
     ArcPtr FindArcIn() const;
+
+    ArcPtr FindArcInBySeq();
 
     //Cycle
     void UpdateCyclePath();

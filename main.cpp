@@ -21,6 +21,7 @@ int main(int argc, char *argv[]) {
 
     TreeAPI tree{};
     tree.debug_ = debug;
+    tree.num_seq_ = 500;
     int ret = ReadNetwork(filename, tree);
     if (ret != RET_SUCCESS) {
         return ret;

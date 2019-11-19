@@ -26,6 +26,10 @@ inline ArcKey GetArcKey(const ArcPtr &p_arc) {
     return {p_arc->GetSrc(), p_arc->GetDst()};
 }
 
+inline ArcKey GetArcKey(int src, int dst) {
+    return {src, dst};
+}
+
 class Network {
 public:
     Network() = default;
@@ -44,17 +48,29 @@ public:
 
     int AddArtificialArc(int src, int dst);
 
-    ArcPtr GetArc(int aid) const;
+    ArcPtr GetArc(int aid) const {
+        return FindMap(arcs_, aid);
+    }
 
-    ArcPtr GetArc(const ArcKey &key);
+    ArcPtr GetArc(const ArcKey &key) {
+        return FindHashMap(arc_idx_, key);
+    }
 
-    ArcPtr GetArc(const ArcKey &key) const;
+    ArcPtr GetArc(const ArcKey &key) const {
+        return FindHashMap(arc_idx_, key);
+    }
 
-    ArcPtr GetArc(int src, int dst);
+    ArcPtr GetArc(int src, int dst) {
+        return GetArc({src, dst});
+    }
 
-    ArcPtr GetArc(int src, int dst) const;
+    ArcPtr GetArc(int src, int dst) const {
+        return FindHashMap(arc_idx_, {src, dst});
+    }
 
-    NodePtr GetNode(int nid) const;
+    NodePtr GetNode(int nid) const {
+        return FindMap(nodes_, nid);
+    }
 
     size_t GetNodeNum() const {
         return nodes_.size();

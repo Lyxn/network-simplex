@@ -4,13 +4,7 @@
 
 #include "network.h"
 
-#include "common/utils.h"
-
 namespace network {
-
-inline ArcKey GetArcKey(int src, int dst) {
-    return {src, dst};
-}
 
 std::ostream &operator<<(std::ostream &os, const Network &nwk) {
     int max_line = 10;
@@ -94,30 +88,5 @@ int Network::AddArcIdx(const ArcPtr &p_arc) {
     return arc_idx_.size();
 }
 
-ArcPtr Network::GetArc(int aid) const {
-    return FindMap(arcs_, aid);
-}
-
-ArcPtr Network::GetArc(const ArcKey &key) {
-    return FindHashMap(arc_idx_, key);
-}
-
-ArcPtr Network::GetArc(const ArcKey &key) const {
-    return FindHashMap(arc_idx_, key);
-}
-
-ArcPtr Network::GetArc(int src, int dst) {
-    auto key = GetArcKey(src, dst);
-    return GetArc(key);
-}
-
-ArcPtr Network::GetArc(int src, int dst) const {
-    auto key = GetArcKey(src, dst);
-    return FindHashMap(arc_idx_, key);
-}
-
-NodePtr Network::GetNode(int nid) const {
-    return FindMap(nodes_, nid);
-}
 
 }

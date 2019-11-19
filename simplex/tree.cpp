@@ -268,26 +268,6 @@ NodePtr TreeAPI::FindNodeJoint(int src, int dst) {
     return nullptr;
 }
 
-std::set<int> TreeAPI::FindChildren(NodePtr &node) {
-    std::set<int> successors{node->node_id_};
-    stack<int> stk;
-    auto son = GetNode(node->son_);
-    if (son != nullptr) {
-        stk.push(son->node_id_);
-    }
-    while (!stk.empty()) {
-        int cur = stk.top();
-        stk.pop();
-        auto p_cur = GetNode(cur);
-        if (p_cur != nullptr) {
-            successors.insert(p_cur->node_id_);
-            stk.push(p_cur->son_);
-            stk.push(p_cur->brother_);
-        }
-    }
-    return successors;
-}
-
 void PrintNode(const NodePtr &p_node) {
     printf("%d\t%d\t%d\t%0.1f\n",
            p_node->node_id_,
@@ -617,19 +597,20 @@ int TreeAPI::RunSimplex(int max_iter) {
     int iter = 1;
     do {
         cycle_.Clear();
-        auto arc_in = FindArcIn();
+//        auto arc_in = FindArcIn();
+        auto arc_in = FindArcInBySeq();
         if (arc_in == nullptr) {
-            printf("Problem solved.\nIteration=%d Cost=%f\n", iter, GetTotalCost());
+            printf("Problem solved.\nIteration=%d TotalCost=%f\n", iter, GetTotalCost());
             break;
         }
         auto arc_out = FindArcOut(arc_in);
         if (arc_out == nullptr) {
-            printf("Problem unbound.\nIteration=%d Cost=%f\n", iter, GetTotalCost());
+            printf("Problem unbound.\nIteration=%d TotalCost=%f\n", iter, GetTotalCost());
             break;
         }
         if (debug_) {
-            printf("Iteration %d\n", iter);
-            PrintTreeAndBasis(*this);
+            printf("Iteration %d TotalCost=%f\n", iter, GetTotalCost());
+//            PrintTreeAndBasis(*this);
             printf("Cycle\n");
             std::cout << "ArcIn: " << *arc_in
                       << " reduced: " << CalcReducedCost(arc_in)
@@ -639,11 +620,11 @@ int TreeAPI::RunSimplex(int max_iter) {
                       << " reduced: " << CalcReducedCost(arc_out)
                       << " volume: " << GetFlowCapacity(arc_out)
                       << std::endl;
-            PrintNode(GetNode(cycle_.node_joint));
+            std::cout << "Joint: " << *GetNode(cycle_.node_joint) << std::endl;
         }
         Pivot(arc_in, arc_out);
         if (iter >= max_iter) {
-            printf("Problem failed.\nIteration=%d Cost=%f\n", iter, GetTotalCost());
+            printf("Problem failed.\nIteration=%d TotalCost=%f\n", iter, GetTotalCost());
             PrintArc();
             PrintArc(arc_in);
             PrintArc(arc_out);
@@ -653,6 +634,40 @@ int TreeAPI::RunSimplex(int max_iter) {
     } while (true);
     UpdateReducedCost();
     return RET_SUCCESS;
+}
+
+ArcPtr TreeAPI::FindArcInBySeq() {
+    int total = arcs_.size();
+    int seq = 0;
+    ArcPtr max_arc;
+    double max_cost = -1;
+    for (int t = 0; t < total; t++) {
+        int idx = seq + offset_;
+        if (idx >= total) {
+            seq = 0;
+            offset_ = 0;
+            idx = 0;
+        }
+        auto p_arc = arcs_.at(idx);
+        double reduced_cost = CalcReducedCost(p_arc);
+        if (reduced_cost < 0 && p_arc->IsStatusLower() && -reduced_cost > max_cost) {
+            max_arc = p_arc;
+            max_cost = -reduced_cost;
+        } else if (reduced_cost > 0 && p_arc->IsStatusUpper() && reduced_cost > max_cost) {
+            max_arc = p_arc;
+            max_cost = reduced_cost;
+        }
+        seq += 1;
+        if (seq >= num_seq_) {
+            if (max_arc == nullptr) {
+                seq = 0;
+                offset_ += num_seq_;
+            } else {
+                break;
+            }
+        }
+    }
+    return max_arc;
 }
 
 }

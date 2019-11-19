@@ -44,8 +44,8 @@ bool Node::operator!=(const Node &rhs) const {
 
 std::ostream &operator<<(std::ostream &os, const Node &node) {
     os << "node_id: " << node.node_id_
-       //<< " supply: " << node.supply_
-       //<< " depth: " << node.depth_
+       << " supply: " << node.supply_
+       << " depth: " << node.depth_
        << " father: " << node.father_
        << " price: " << node.price_;
     return os;

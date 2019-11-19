@@ -47,6 +47,7 @@ int TestSimplex0() {
     printf("Before\n");
     PrintTreeAndBasis(tree);
     tree.debug_ = true;
+    tree.num_seq_ = 4;
     tree.RunSimplex();
 }
 
@@ -56,6 +57,7 @@ int TestSimplex1() {
     ReadNetwork(filename, tree);
     tree.InitArtificialBasis();
     tree.debug_ = true;
+    tree.num_seq_ = 10;
     tree.RunSimplex(9);
     PrintTreeAndBasis(tree);
 }
