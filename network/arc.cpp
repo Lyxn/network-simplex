@@ -12,8 +12,8 @@ Arc::Arc(int arc_id,
          double cost,
          int capacity,
          int is_artificial) : arc_id_(arc_id),
-                              src_id_(src_id),
-                              dst_id_(dst_id),
+                              src_(src_id),
+                              dst_(dst_id),
                               cost_(cost),
                               capacity_(capacity),
                               _is_artificial_(is_artificial) {
@@ -30,8 +30,8 @@ Arc::Arc(int arc_id, int src_id, int dst_id, double cost) :
 Arc(arc_id, src_id, dst_id, cost, MAX_CAPACITY, false) {}
 
 bool Arc::operator==(const Arc &rhs) const {
-    return src_id_ == rhs.src_id_ &&
-           dst_id_ == rhs.dst_id_;
+    return src_ == rhs.src_ &&
+           dst_ == rhs.dst_;
 }
 
 bool Arc::operator!=(const Arc &rhs) const {
@@ -39,10 +39,10 @@ bool Arc::operator!=(const Arc &rhs) const {
 }
 
 int Arc::GetNeighbor(int node_id) const {
-    if (src_id_ == node_id) {
-        return dst_id_;
-    } else if (dst_id_ == node_id) {
-        return src_id_;
+    if (src_ == node_id) {
+        return dst_;
+    } else if (dst_ == node_id) {
+        return src_;
     } else {
         return INVALID_NODE_ID;
     }
@@ -64,16 +64,8 @@ void Arc::SetStatus(FlowStatus status) {
     status_ = status;
 }
 
-int Arc::GetSrcId() const {
-    return src_id_;
-}
-
-int Arc::GetDstId() const {
-    return dst_id_;
-}
-
 std::ostream &operator<<(std::ostream &os, const Arc &arc) {
-    os << "src: " << arc.src_id_ << " dst: " << arc.dst_id_ << " cost: " << arc.cost_ << " cap: "
+    os << "src: " << arc.src_ << " dst: " << arc.dst_ << " cost: " << arc.cost_ << " cap: "
        << arc.capacity_ << " flow: " << arc.flow_ << " dir: " << arc.direction_;
     return os;
 }

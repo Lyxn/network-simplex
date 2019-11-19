@@ -73,6 +73,8 @@ private:
 
     ArcPtr FindArcOut(const ArcPtr &arc_in);
 
+    bool IsNodeInRoot(int nid) const;
+
     //Pivot
     void Pivot(ArcPtr &arc_in, ArcPtr &arc_out);
 
@@ -80,11 +82,11 @@ private:
 
     void UpdateBasisArc(ArcPtr &arc_in, ArcPtr &arc_out);
 
-    void UpdateNodePrice(const std::set<int> &tree_upd, ArcPtr &arc_in);
-
     void UpdateTree(ArcPtr &arc_in, ArcPtr &arc_out);
 
-    void UpdateTreeStruct(const std::set<int> &tree_upd, ArcPtr &arc_in, NodePtr &out_upd);
+    void UpdateDepthAndPrice(int nid, double delta);
+
+    void UpdateTreeStruct(NodePtr &in_root, NodePtr &in_upd, NodePtr &out_upd);
 
     void AddChild(NodePtr &node, NodePtr &child);
 

@@ -17,8 +17,7 @@ typedef struct cycle_t {
     ArcKey arc_in;
     ArcKey arc_out;
     int node_joint{};
-    std::vector<ArcPtr> path_src;
-    std::vector<ArcPtr> path_dst;
+    std::vector<ArcPtr> path;
 
     cycle_t();
 

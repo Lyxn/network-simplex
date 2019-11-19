@@ -43,7 +43,7 @@ int ParseArcInfo(const std::string &arc_info, int &dst, double &cost, int &capac
 int ReadNetwork(const std::string &filename, Network &nwk) {
     std::ifstream infile(filename.c_str());
     if (!infile) {
-        printf("Fail to Read File %s", filename.c_str());
+        printf("Fail to Read File %s\n", filename.c_str());
         return RET_FAIL;
     }
     string line;
@@ -98,18 +98,18 @@ int FindShortestPathBellman(Network &nwk, int dst) {
         bool has_change = false;
         for (auto &it: nwk.arcs_) {
             auto p_arc = it.second;
-            if (p_arc->src_id_ == dst) {
+            if (p_arc->src_ == dst) {
                 continue;
             }
-            auto p_arc_dst = nwk.GetNode(p_arc->dst_id_);
+            auto p_arc_dst = nwk.GetNode(p_arc->dst_);
             if (p_arc_dst->price_ == MAX_PRICE) {
                 continue;
             }
-            auto p_arc_src = nwk.GetNode(p_arc->src_id_);
+            auto p_arc_src = nwk.GetNode(p_arc->src_);
             double price = p_arc->cost_ + p_arc_dst->price_;
             if (p_arc_src->price_ > price) {
                 p_arc_src->price_ = price;
-                p_arc_src->father_ = p_arc->dst_id_;
+                p_arc_src->father_ = p_arc->dst_;
                 has_change = true;
             }
         }

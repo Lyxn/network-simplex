@@ -31,7 +31,7 @@ public:
 
     friend std::ostream &operator<<(std::ostream &os, const Node &node);
 
-    void set_root();
+    void SetRoot();
 
     void AddArdDst(int arc_id);
 

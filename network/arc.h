@@ -53,16 +53,20 @@ public:
 
     void SetStatus(FlowStatus status);
 
-    int GetSrcId() const;
+    int GetSrc() const {
+        return src_;
+    }
 
-    int GetDstId() const;
+    int GetDst() const {
+        return dst_;
+    }
 
     friend std::ostream &operator<<(std::ostream &os, const Arc &arc);
 
 public:
     int arc_id_;
-    int src_id_;
-    int dst_id_;
+    int src_;
+    int dst_;
     double cost_;
     int capacity_;
     int flow_;

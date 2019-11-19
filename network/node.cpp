@@ -19,7 +19,7 @@ Node::Node(int node_id,
                                  depth_(0),
                                  price_(MAX_PRICE) {}
 
-void Node::set_root() {
+void Node::SetRoot() {
     is_root_ = true;
     depth_ = 0;
     father_ = INVALID_NODE_ID;

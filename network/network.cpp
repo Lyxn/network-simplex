@@ -26,7 +26,7 @@ std::ostream &operator<<(std::ostream &os, const Network &nwk) {
             if (p_arc == nullptr) {
                 os << dst << ", " << p_arc << "; ";
             } else {
-                os << p_arc->dst_id_ << ", "
+                os << p_arc->dst_ << ", "
                    << p_arc->cost_ << ", ";
                 //<< p_arc->capacity_ << "; ";
             }
@@ -42,8 +42,8 @@ std::ostream &operator<<(std::ostream &os, const Network &nwk) {
     for (const auto &it: nwk.arcs_) {
         auto p_arc = it.second;
         os << it.first << ": "
-           << p_arc->src_id_ << ", "
-           << p_arc->dst_id_
+           << p_arc->src_ << ", "
+           << p_arc->dst_
            << "\n";
         count += 1;
         if (count > max_line) {
@@ -87,8 +87,8 @@ int Network::AddArtificialArc(int src, int dst) {
 }
 
 int Network::AddArcIdx(const ArcPtr &p_arc) {
-    int src = p_arc->GetSrcId();
-    int dst = p_arc->GetDstId();
+    int src = p_arc->GetSrc();
+    int dst = p_arc->GetDst();
     auto key = GetArcKey(src, dst);
     arc_idx_.insert({key, p_arc});
     return arc_idx_.size();
