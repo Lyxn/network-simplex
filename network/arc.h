@@ -53,14 +53,6 @@ public:
 
     void SetStatus(FlowStatus status);
 
-    int GetSrc() const {
-        return src_;
-    }
-
-    int GetDst() const {
-        return dst_;
-    }
-
     friend std::ostream &operator<<(std::ostream &os, const Arc &arc);
 
 public:
@@ -73,9 +65,9 @@ public:
     double reduced_cost_;
     FlowStatus status_;
     Direction direction_;
+    bool is_artificial_;
 
 private:
-    int _is_artificial_;
 
     DISALLOW_COPY_AND_ASSIGN(Arc);
 };

@@ -18,7 +18,7 @@ typedef std::set<ArcPtr> ArcSet;
 
 class TreeAPI : public Network {
 public:
-    TreeAPI() = default;
+    explicit TreeAPI(int root = 0, bool debug = false);
 
     ~TreeAPI() override = default;
 

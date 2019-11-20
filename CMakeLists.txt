@@ -2,6 +2,7 @@ cmake_minimum_required(VERSION 3.10)
 project(network_simplex)
 
 set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_FLAGS "-g -Wall -O3 -ffast-math -finline-functions")
 
 include_directories(${PROJECT_SOURCE_DIR})
 include_directories(common network simplex)

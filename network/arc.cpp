@@ -16,11 +16,11 @@ Arc::Arc(int arc_id,
                               dst_(dst_id),
                               cost_(cost),
                               capacity_(capacity),
-                              _is_artificial_(is_artificial) {
+                              is_artificial_(is_artificial) {
     flow_ = 0;
-    reduced_cost_ = 0.0;
     status_ = FLOW_LOWER;
     direction_ = D_POS;
+    reduced_cost_ = 0.0;
 }
 
 Arc::Arc(int arc_id, int src_id, int dst_id, double cost, int capacity) :

@@ -23,7 +23,7 @@ typedef BiKeyInt ArcKey;
 typedef std::unordered_map<ArcKey, ArcPtr, HashBiKeyInt> ArcPtrMap;
 
 inline ArcKey GetArcKey(const ArcPtr &p_arc) {
-    return {p_arc->GetSrc(), p_arc->GetDst()};
+    return {p_arc->src_, p_arc->dst_};
 }
 
 inline ArcKey GetArcKey(int src, int dst) {

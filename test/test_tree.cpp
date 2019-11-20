@@ -20,7 +20,7 @@ BasisArc MockBasis0() {
     return basis_arc;
 }
 
-int TestTree0() {
+void TestTree0() {
     string filename = "../data/test.nwk";
     TreeAPI tree{};
     ReadNetwork(filename, tree);
@@ -37,27 +37,28 @@ int TestTree0() {
     printf("TotalCost=%f\n", tree.GetTotalCost());
 }
 
-int TestSimplex0() {
+void TestSimplex0() {
     string filename = "../data/test.nwk";
-    TreeAPI tree{};
+    int root = 3;
+    bool debug = true;
+    TreeAPI tree(root, debug);
     ReadNetwork(filename, tree);
     auto basis_arc = MockBasis0();
-    int root = 3;
     tree.InitBasisTree(basis_arc, root);
     printf("Before\n");
     PrintTreeAndBasis(tree);
-    tree.debug_ = true;
     tree.num_seq_ = 4;
     tree.RunSimplex();
 }
 
-int TestSimplex1() {
+void TestSimplex1() {
     string filename = "../data/beispiel.nwk";
-    TreeAPI tree{};
+    int root = 0;
+    bool debug = true;
+    TreeAPI tree(root, debug);
     ReadNetwork(filename, tree);
     tree.InitArtificialBasis();
-    tree.debug_ = true;
-    tree.num_seq_ = 10;
+    tree.num_seq_ = 4;
     tree.RunSimplex(9);
     PrintTreeAndBasis(tree);
 }

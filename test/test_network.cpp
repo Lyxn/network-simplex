@@ -22,7 +22,7 @@ void PrintPath(const Network &nwk, const vector<int> &path) {
     }
 }
 
-int TestReadNetwork() {
+void TestReadNetwork() {
 //    string filename = "../data/test.nwk";
     string filename = "../data/petersen.nwk";
     Network nwk{};
@@ -30,7 +30,7 @@ int TestReadNetwork() {
     cout << nwk << endl;
 }
 
-int TestShortestPath() {
+void TestShortestPath() {
     string filename = "../data/shortestpath.nwk";
     Network nwk{};
     ReadNetwork(filename, nwk);

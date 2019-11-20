@@ -81,8 +81,8 @@ int Network::AddArtificialArc(int src, int dst) {
 }
 
 int Network::AddArcIdx(const ArcPtr &p_arc) {
-    int src = p_arc->GetSrc();
-    int dst = p_arc->GetDst();
+    int src = p_arc->src_;
+    int dst = p_arc->dst_;
     auto key = GetArcKey(src, dst);
     arc_idx_.insert({key, p_arc});
     return arc_idx_.size();

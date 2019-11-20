@@ -2,6 +2,7 @@
 // Created by LyxnO on 2019/11/16.
 //
 
+#include <ctime>
 #include <iostream>
 
 #include "tree.h"
@@ -19,15 +20,25 @@ int main(int argc, char *argv[]) {
     auto filename = string(argv[1]);
     bool debug = argc >= 3;
 
+    clock_t start;
     TreeAPI tree{};
     tree.debug_ = debug;
-    tree.num_seq_ = 500;
+
+    start = clock();
     int ret = ReadNetwork(filename, tree);
+    printf("Network TimeCost %ld\n", clock() - start);
     if (ret != RET_SUCCESS) {
         return ret;
     }
+
+    start = clock();
     tree.InitArtificialBasis();
+    printf("Basis TimeCost %ld\n", clock() - start);
+
+    start = clock();
     tree.RunSimplex();
+    printf("Simplex TimeCost %ld\n", clock() - start);
+
     PrintTree(tree);
     PrintArcFlow(tree);
     return 0;
