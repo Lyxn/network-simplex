@@ -49,7 +49,7 @@ public:
     int AddArtificialArc(int src, int dst);
 
     ArcPtr GetArc(int aid) const {
-        return FindMap(arcs_, aid);
+        return arcs_.at(aid);
     }
 
     ArcPtr GetArc(const ArcKey &key) {
@@ -69,7 +69,10 @@ public:
     }
 
     NodePtr GetNode(int nid) const {
-        return FindMap(nodes_, nid);
+        if (nid > nodes_.size()) {
+            return nullptr;
+        }
+        return nodes_.at(nid);
     }
 
     size_t GetNodeNum() const {
@@ -80,9 +83,8 @@ public:
         return arcs_.size();
     }
 
-public:
-    std::map<int, NodePtr> nodes_;
-    std::map<int, ArcPtr> arcs_;
+    std::vector<NodePtr> nodes_;
+    std::vector<ArcPtr> arcs_;
     ArcPtrMap arc_idx_;
     double max_cost_{};
 

@@ -46,9 +46,8 @@ int TreeAPI::InitArtificialBasis() {
     int artificial_id = GetNodeNum();
     AddNode(artificial_id, 0);
     BasisArc basis_arc;
-    for (auto &it: nodes_) {
-        int nid = it.first;
-        auto p_node = it.second;
+    for (auto &p_node: nodes_) {
+        int nid = p_node->node_id_;
         if (nid == artificial_id) {
             continue;
         }

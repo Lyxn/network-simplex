@@ -11,12 +11,10 @@ std::ostream &operator<<(std::ostream &os, const Network &nwk) {
     os << nwk.nodes_.size() << "\n";
 
     int count = 0;
-    for (const auto &it: nwk.nodes_) {
-        auto nid = it.first;
-        auto p_node = it.second;
-        os << nid << ", " << p_node->supply_ << ": ";
+    for (const auto &p_node: nwk.nodes_) {
+        os << p_node->node_id_ << ", " << p_node->supply_ << ": ";
         for (auto dst: p_node->arc_dst_) {
-            auto p_arc = nwk.GetArc(nid, dst);
+            auto p_arc = nwk.GetArc(p_node->node_id_, dst);
             if (p_arc == nullptr) {
                 os << dst << ", " << p_arc << "; ";
             } else {
@@ -33,10 +31,8 @@ std::ostream &operator<<(std::ostream &os, const Network &nwk) {
     }
 
     count = 0;
-    for (const auto &it: nwk.arcs_) {
-        auto p_arc = it.second;
-        os << it.first << ": "
-           << p_arc->src_ << ", "
+    for (const auto &p_arc: nwk.arcs_) {
+        os << p_arc->src_ << ", "
            << p_arc->dst_
            << "\n";
         count += 1;
@@ -56,14 +52,14 @@ void Network::Clear() {
 
 void Network::AddNode(int nid, int supply, bool is_artificial) {
     NodePtr node(new Node(nid, supply, is_artificial));
-    nodes_.insert({nid, node});
+    nodes_.emplace_back(node);
 }
 
 int Network::AddArc(int src, int dst, double cost, int capacity, bool is_artificial) {
     int aid = GetArcNum();
     ArcPtr arc(new Arc(aid, src, dst, cost, capacity, is_artificial));
 //    printf("Arc %d src %d dst %d\n", aid, src, dst);
-    arcs_.insert({aid, arc});
+    arcs_.emplace_back(arc);
     nodes_[src]->AddArdDst(dst);
     AddArcIdx(arc);
     if (!is_artificial) {

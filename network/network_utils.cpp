@@ -88,16 +88,15 @@ int ReadNetwork(const std::string &filename, Network &nwk) {
 }
 
 int FindShortestPathBellman(Network &nwk, int dst) {
-    for (auto &it: nwk.nodes_) {
-        it.second->price_ = MAX_PRICE;
+    for (auto &p_node: nwk.nodes_) {
+        p_node->price_ = MAX_PRICE;
     }
     auto p_dst = nwk.GetNode(dst);
     p_dst->price_ = 0;
     p_dst->father_ = INVALID_NODE_ID;
     do {
         bool has_change = false;
-        for (auto &it: nwk.arcs_) {
-            auto p_arc = it.second;
+        for (auto &p_arc: nwk.arcs_) {
             if (p_arc->src_ == dst) {
                 continue;
             }
@@ -121,8 +120,8 @@ int FindShortestPathBellman(Network &nwk, int dst) {
 }
 
 int FindShortestPathDijkstra(Network &nwk, int dst) {
-    for (auto &it: nwk.nodes_) {
-        it.second->price_ = MAX_PRICE;
+    for (auto &p_node: nwk.nodes_) {
+        p_node->price_ = MAX_PRICE;
     }
     auto p_dst = nwk.GetNode(dst);
     p_dst->price_ = 0;
@@ -132,13 +131,13 @@ int FindShortestPathDijkstra(Network &nwk, int dst) {
         // find min node
         int min_node = INVALID_NODE_ID;
         double min_price = MAX_PRICE;
-        for (auto &it: nwk.nodes_) {
-            if (HasValue(node_shortest, it.first)) {
+        for (auto &p_node: nwk.nodes_) {
+            if (HasValue(node_shortest, p_node->node_id_)) {
                 continue;
             }
-            if (it.second->price_ < min_price) {
-                min_node = it.first;
-                min_price = it.second->price_;
+            if (p_node->price_ < min_price) {
+                min_node = p_node->node_id_;
+                min_price = p_node->price_;
             }
         }
         // no node need to be updated
@@ -147,13 +146,12 @@ int FindShortestPathDijkstra(Network &nwk, int dst) {
         }
         node_shortest.insert(min_node);
         // update node price
-        for (auto &it: nwk.nodes_) {
-            if (HasValue(node_shortest, it.first)) {
+        for (auto &p_node: nwk.nodes_) {
+            if (HasValue(node_shortest, p_node->node_id_)) {
                 continue;
             }
-            auto p_node = it.second;
             for (auto arc_dst: p_node->arc_dst_) {
-                auto p_arc = nwk.GetArc(it.first, arc_dst);
+                auto p_arc = nwk.GetArc(p_node->node_id_, arc_dst);
                 auto p_arc_dst = nwk.GetNode(arc_dst);
                 if (p_dst->price_ == MAX_PRICE) {
                     continue;
