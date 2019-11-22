@@ -6,13 +6,13 @@
 
 namespace network {
 
-Cycle::cycle_t() : arc_in(INVALID_ARC_KEY),
-                   arc_out{INVALID_ARC_KEY},
+Cycle::cycle_t() : arc_in(nullptr),
+                   arc_out(nullptr),
                    node_joint(INVALID_NODE_ID) {}
 
 void cycle_t::Clear() {
-    arc_in = INVALID_ARC_KEY;
-    arc_out = INVALID_ARC_KEY;
+    arc_in = nullptr;
+    arc_out = nullptr;
     node_joint = INVALID_NODE_ID;
     path.clear();
 }

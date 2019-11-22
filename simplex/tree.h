@@ -13,7 +13,7 @@
 
 namespace network {
 
-typedef std::set<ArcKey> BasisArc;
+typedef std::set<ArcKey> BasisArcKey;
 typedef std::set<ArcPtr> ArcSet;
 
 class TreeAPI : public Network {
@@ -22,7 +22,7 @@ public:
 
     ~TreeAPI() override = default;
 
-    int InitBasisTree(const BasisArc &basis_arc, int root = 0);
+    int InitBasisTree(const BasisArcKey &basis_arc, int root = 0);
 
     int InitArtificialBasis();
 
@@ -44,7 +44,7 @@ public:
 
 public:
     int root_{};
-    BasisArc basis_arc_;
+    ArcPtrMap basis_arc_;
     Cycle cycle_{};
     ArcSet candidate_arcs_; //TODO collect the candidate arcs
     bool debug_{};
@@ -52,7 +52,7 @@ public:
     int offset_{};
 
 private:
-    void CalcBasisFlow(const BasisArc &basis_arc);
+    void CalcBasisFlow(const BasisArcKey &basis_arc);
 
     double CalcNodePrice(const NodePtr &refer, const NodePtr &unk) const;
 
@@ -62,7 +62,7 @@ private:
 
     double CalcReducedCost(const ArcPtr &p_arc) const;
 
-    ArcPtr FindArcIn() const;
+    ArcPtr FindArcInFirst() const;
 
     ArcPtr FindArcInBySeq();
 

@@ -81,6 +81,11 @@ int ReadNetwork(const std::string &filename, Network &nwk) {
         printf("the node num %d is not the same as the file num %d", nwk.GetNodeNum(), num_node);
         return RET_ERROR;
     }
+    auto last_node = nwk.GetNode(num_node - 1);
+    if (last_node == nullptr || last_node->node_id_ != num_node - 1) {
+        printf("last node is nullptr or node_id is not valid");
+        return RET_ERROR;
+    }
     std::cout << "Network Nodes: " << nwk.GetNodeNum()
               << " Arcs: " << nwk.GetArcNum()
               << std::endl;

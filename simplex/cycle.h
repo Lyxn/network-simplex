@@ -14,8 +14,8 @@ namespace network {
 const ArcKey INVALID_ARC_KEY = {INVALID_NODE_ID, INVALID_NODE_ID};
 
 typedef struct cycle_t {
-    ArcKey arc_in;
-    ArcKey arc_out;
+    ArcPtr arc_in;
+    ArcPtr arc_out;
     int node_joint{};
     std::vector<ArcPtr> path;
 

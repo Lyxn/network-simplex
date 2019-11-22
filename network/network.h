@@ -19,8 +19,9 @@ namespace network {
 
 typedef std::shared_ptr<Arc> ArcPtr;
 typedef std::shared_ptr<Node> NodePtr;
-typedef BiKeyInt ArcKey;
-typedef std::unordered_map<ArcKey, ArcPtr, HashBiKeyInt> ArcPtrMap;
+typedef BiKey<int, int> ArcKey;
+typedef HashBiKey<int, int> HashArcKey;
+typedef std::unordered_map<ArcKey, ArcPtr, HashArcKey> ArcPtrMap;
 
 inline ArcKey GetArcKey(const ArcPtr &p_arc) {
     return {p_arc->src_, p_arc->dst_};

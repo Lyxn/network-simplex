@@ -20,13 +20,13 @@ TreeAPI::TreeAPI(int root,
                                num_seq_(500) {
 }
 
-int TreeAPI::InitBasisTree(const BasisArc &basis_arc, int root) {
+int TreeAPI::InitBasisTree(const BasisArcKey &basis_arc, int root) {
     basis_arc_.clear();
     for (auto &key: basis_arc) {
         auto src = key.first;
         auto dst = key.second;
         auto p_arc = GetArc(src, dst);
-        basis_arc_.insert(key);
+        basis_arc_.insert({key, p_arc});
         p_arc->SetStatus(FLOW_BASIS);
         GetNode(src)->AddNeighbor(dst);
         GetNode(dst)->AddNeighbor(src);
@@ -45,7 +45,7 @@ int TreeAPI::InitBasisTree(const BasisArc &basis_arc, int root) {
 int TreeAPI::InitArtificialBasis() {
     int artificial_id = GetNodeNum();
     AddNode(artificial_id, 0);
-    BasisArc basis_arc;
+    BasisArcKey basis_arc;
     for (auto &p_node: nodes_) {
         int nid = p_node->node_id_;
         if (nid == artificial_id) {
@@ -128,7 +128,7 @@ inline bool IsAnyOne(const int *arr, int size) {
     return false;
 }
 
-void TreeAPI::CalcBasisFlow(const BasisArc &basis_arc) {
+void TreeAPI::CalcBasisFlow(const BasisArcKey &basis_arc) {
     int num_node = GetNodeNum();
     int node_arc_cnt[num_node];
     int node_flow[num_node];
@@ -172,12 +172,12 @@ void TreeAPI::CalcBasisFlow(const BasisArc &basis_arc) {
     } while (true);
 }
 
-ArcPtr TreeAPI::GetBasisArc(int src, int dst) const {
-    auto p_arc = GetArc(src, dst);
-    if (p_arc != nullptr && p_arc->IsStatusBasis()) {
+inline ArcPtr TreeAPI::GetBasisArc(int src, int dst) const {
+    auto p_arc = FindHashMap(basis_arc_, {src, dst});
+    if (p_arc != nullptr) {
         return p_arc;
     } else {
-        return GetArc(dst, src);
+        return FindHashMap(basis_arc_, {dst, src});
     }
 }
 
@@ -216,7 +216,7 @@ void TreeAPI::CalcBasisPrice() {
 }
 
 bool TreeAPI::IsBasisArc(const ArcKey &key) const {
-    return HasValue(basis_arc_, key);
+    return HasHashKey(basis_arc_, key);
 }
 
 void TreeAPI::UpdateReducedCost() {
@@ -321,8 +321,8 @@ void PrintArc(const ArcPtr &p_arc) {
 
 void PrintBasisArc(const TreeAPI &tree) {
     PrintArc();
-    for (auto &key: tree.basis_arc_) {
-        auto p_arc = tree.GetArc(key);
+    for (auto &it: tree.basis_arc_) {
+        auto p_arc = it.second;
         PrintArc(p_arc);
     }
 }
@@ -357,12 +357,11 @@ void PrintTreeAndBasis(const TreeAPI &tree) {
     printf("TotalCost=%f\n", tree.GetTotalCost());
 }
 
-ArcPtr TreeAPI::FindArcIn() const {
-    for (auto &it: arc_idx_) {
-        if (IsBasisArc(it.first)) {
+ArcPtr TreeAPI::FindArcInFirst() const {
+    for (auto &p_arc: arcs_) {
+        if (p_arc->IsStatusBasis()) {
             continue;
         }
-        auto p_arc = it.second;
         double reduced_cost = CalcReducedCost(p_arc);
         if (reduced_cost < 0 && p_arc->IsStatusLower()) {
             return p_arc;
@@ -395,7 +394,7 @@ void TreeAPI::UpdateCyclePath(ArcPtr &arc_in, int nid, std::vector<ArcPtr> &path
 }
 
 void TreeAPI::UpdateCyclePath() {
-    auto p_arc_in = GetArc(cycle_.arc_in);
+    auto p_arc_in = cycle_.arc_in;
     p_arc_in->direction_ = (p_arc_in->IsStatusUpper()) ? D_NEG : D_POS;
     //add entering arc to path
     cycle_.path.push_back(p_arc_in);
@@ -440,7 +439,7 @@ ArcPtr TreeAPI::GetMinFlowArc(const ArcPtr &arc_in) {
 ArcPtr TreeAPI::FindArcOut(const ArcPtr &arc_in) {
     int src = arc_in->src_;
     int dst = arc_in->dst_;
-    cycle_.arc_in = {src, dst};
+    cycle_.arc_in = arc_in;
     //find joint
     auto p_node = FindNodeJoint(src, dst);
     cycle_.node_joint = p_node->node_id_;
@@ -448,7 +447,7 @@ ArcPtr TreeAPI::FindArcOut(const ArcPtr &arc_in) {
     UpdateCyclePath();
     //find min flow arc
     auto min_arc = GetMinFlowArc(arc_in);
-    cycle_.arc_out = (min_arc == nullptr) ? INVALID_ARC_KEY : GetArcKey(min_arc);
+    cycle_.arc_out = min_arc;
     return min_arc;
 }
 
@@ -474,14 +473,14 @@ void TreeAPI::UpdateCycleFlow(ArcPtr &arc_in, ArcPtr &arc_out) {
 void TreeAPI::UpdateBasisArc(ArcPtr &arc_in, ArcPtr &arc_out) {
     arc_in->status_ = FLOW_BASIS;
     arc_out->status_ = (arc_out->flow_ == 0) ? FLOW_LOWER : FLOW_UPPER;
-    basis_arc_.insert(GetArcKey(arc_in));
+    basis_arc_.insert({GetArcKey(arc_in), arc_in});
     basis_arc_.erase(GetArcKey(arc_out));
 }
 
 bool TreeAPI::IsNodeInRoot(int nid) const {
     auto p_node = GetNode(nid);
     while (p_node->node_id_ != cycle_.node_joint) {
-        if (p_node->node_id_ == cycle_.arc_out.first || p_node->node_id_ == cycle_.arc_out.second) {
+        if (p_node->node_id_ == cycle_.arc_out->src_ || p_node->node_id_ == cycle_.arc_out->dst_) {
             return false;
         }
         p_node = GetNode(p_node->father_);
@@ -604,7 +603,7 @@ int TreeAPI::RunSimplex(int max_iter) {
     int iter = 1;
     do {
         cycle_.Clear();
-//        auto arc_in = FindArcIn();
+//        auto arc_in = FindArcInFirst();
         auto arc_in = FindArcInBySeq();
         if (arc_in == nullptr) {
             printf("Problem solved.\nIteration=%d TotalCost=%f\n", iter, GetTotalCost());

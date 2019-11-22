@@ -14,7 +14,7 @@
 
 namespace network {
 
-const int INVALID_NODE_ID = -1;
+const int INVALID_NODE_ID = INT32_MAX;
 const double MAX_PRICE = DBL_MAX;
 
 class Node {

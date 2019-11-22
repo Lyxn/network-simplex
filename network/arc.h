@@ -13,7 +13,7 @@
 
 namespace network {
 
-const int INVALID_ARC_ID = -1;
+const int INVALID_ARC_ID = INT32_MAX;
 const int MAX_CAPACITY = INT_MAX;
 
 enum FlowStatus {

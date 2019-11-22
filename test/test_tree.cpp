@@ -10,8 +10,8 @@
 using namespace std;
 using namespace network;
 
-BasisArc MockBasis0() {
-    BasisArc basis_arc{
+BasisArcKey MockBasis0() {
+    BasisArcKey basis_arc{
     {1, 2},
     {3, 0},
     {3, 2},

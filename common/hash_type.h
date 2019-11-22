@@ -77,9 +77,6 @@ bool HasHashKey(const std::unordered_map<T1, T2, HASH, EQ> &items, const T1 &key
     return items.find(key) != items.end();
 }
 
-typedef BiKey<int, int> BiKeyInt;
-typedef HashBiKey<int, int> HashBiKeyInt;
-
 }
 
 #endif //NETWORK_SIMPLEX_HASH_TYPE_H
