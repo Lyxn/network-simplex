@@ -6,13 +6,12 @@
 
 namespace network {
 
-Node::Node(int node_id,
-           int supply,
+Node::Node(NodeIndex node_id,
+           FlowType supply,
            bool is_artificial) : node_id_(node_id),
                                  supply_(supply),
                                  is_artificial_(is_artificial),
                                  is_root_(false),
-                                 is_leaf_(false),
                                  father_(INVALID_NODE_ID),
                                  son_(INVALID_NODE_ID),
                                  brother_(INVALID_NODE_ID),
@@ -26,11 +25,11 @@ void Node::SetRoot() {
     brother_ = INVALID_NODE_ID;
 }
 
-void Node::AddArdDst(int dst) {
+void Node::AddArdDst(NodeIndex dst) {
     arc_dst_.insert(dst);
 }
 
-void Node::AddNeighbor(int node_id) {
+void Node::AddNeighbor(NodeIndex node_id) {
     neighbor_.insert(node_id);
 }
 

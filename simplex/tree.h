@@ -18,32 +18,30 @@ typedef std::set<ArcPtr> ArcSet;
 
 class TreeAPI : public Network {
 public:
-    explicit TreeAPI(int root = 0, bool debug = false);
+    explicit TreeAPI(NodeIndex root = 0, bool debug = false);
 
     ~TreeAPI() override = default;
 
-    int InitBasisTree(const BasisArcKey &basis_arc, int root = 0);
+    NodeIndex InitBasisTree(const BasisArcKey &basis_arc, NodeIndex root = 0);
 
-    int InitArtificialBasis();
+    NodeIndex InitArtificialBasis();
 
-    double GetTotalCost() const;
+    PriceType GetTotalCost() const;
 
-    bool IsBasisArc(const ArcKey &key) const;
+    ArcPtr GetBasisArc(NodeIndex src, NodeIndex dst) const;
 
-    ArcPtr GetBasisArc(int src, int dst) const;
+    NodeIndex SetRoot(NodeIndex root);
 
-    int SetRoot(int root);
+    NodeIndex InitTreeStruct(NodeIndex root);
 
-    int InitTreeStruct(int root);
+    void UpdateDepth(NodeIndex nid);
 
-    void UpdateDepth(int nid);
-
-    NodePtr FindNodeJoint(int src, int dst);
+    NodePtr FindNodeJoint(NodeIndex src, NodeIndex dst);
 
     int RunSimplex(int max_iter = 100000);
 
 public:
-    int root_{};
+    NodeIndex root_{};
     ArcPtrMap basis_arc_;
     Cycle cycle_{};
     ArcSet candidate_arcs_; //TODO collect the candidate arcs
@@ -54,13 +52,13 @@ public:
 private:
     void CalcBasisFlow(const BasisArcKey &basis_arc);
 
-    double CalcNodePrice(const NodePtr &refer, const NodePtr &unk) const;
+    PriceType CalcNodePrice(const NodePtr &refer, const NodePtr &unk) const;
 
     void CalcBasisPrice();
 
     void UpdateReducedCost();
 
-    double CalcReducedCost(const ArcPtr &p_arc) const;
+    PriceType CalcReducedCost(const ArcPtr &p_arc) const;
 
     ArcPtr FindArcInFirst() const;
 
@@ -69,7 +67,7 @@ private:
     //Cycle
     void UpdateCyclePath();
 
-    void UpdateCyclePath(ArcPtr &arc_in, int nid, std::vector<ArcPtr> &path);
+    void UpdateCyclePath(ArcPtr &arc_in, NodeIndex nid, std::vector<ArcPtr> &path);
 
     ArcPtr GetMinFlowArc(const ArcPtr &arc_in);
 
@@ -86,7 +84,7 @@ private:
 
     void UpdateTree(ArcPtr &arc_in, ArcPtr &arc_out);
 
-    void UpdateDepthAndPrice(int nid, double delta);
+    void UpdateDepthAndPrice(NodeIndex nid, PriceType delta);
 
     void UpdateTreeStruct(NodePtr &in_root, NodePtr &in_upd, NodePtr &out_upd);
 

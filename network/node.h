@@ -5,7 +5,7 @@
 #ifndef NETWORK_SIMPLEX_NODE_H
 #define NETWORK_SIMPLEX_NODE_H
 
-#include <cfloat>
+#include <climits>
 
 #include <set>
 #include <ostream>
@@ -14,14 +14,18 @@
 
 namespace network {
 
-const int INVALID_NODE_ID = INT32_MAX;
-const double MAX_PRICE = DBL_MAX;
+typedef int NodeIndex;
+typedef long PriceType;
+typedef int FlowType;
+
+const NodeIndex INVALID_NODE_ID = INT_MAX;
+const PriceType MAX_PRICE = LONG_MAX;
 
 class Node {
 public:
     Node() = delete;
 
-    Node(int node_id, int supply, bool is_artificial = false);
+    Node(NodeIndex node_id, FlowType supply, bool is_artificial = false);
 
     virtual ~Node() = default;
 
@@ -38,22 +42,21 @@ public:
     void AddNeighbor(int node_id);
 
 public:
-    int node_id_;
-    int supply_;
+    NodeIndex node_id_;
+    FlowType supply_;
     bool is_artificial_;
-    std::set<int> arc_dst_;
-    std::set<int> neighbor_;
+    std::set<NodeIndex> arc_dst_;
+    std::set<NodeIndex> neighbor_;
 
     //Spanning Tree
     bool is_root_;
-    int is_leaf_;
-    int father_;
-    int son_;
-    int brother_;
+    NodeIndex father_;
+    NodeIndex son_;
+    NodeIndex brother_;
     int depth_;
 
     //Price
-    double price_;
+    PriceType price_;
 
 private:
     DISALLOW_COPY_AND_ASSIGN(Node);

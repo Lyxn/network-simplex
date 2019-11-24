@@ -19,21 +19,17 @@ namespace network {
 
 typedef std::shared_ptr<Arc> ArcPtr;
 typedef std::shared_ptr<Node> NodePtr;
-typedef BiKey<int, int> ArcKey;
-typedef HashBiKey<int, int> HashArcKey;
+typedef BiKey<NodeIndex, NodeIndex> ArcKey;
+typedef HashBiKey<NodeIndex, NodeIndex> HashArcKey;
 typedef std::unordered_map<ArcKey, ArcPtr, HashArcKey> ArcPtrMap;
 
 inline ArcKey GetArcKey(const ArcPtr &p_arc) {
     return {p_arc->src_, p_arc->dst_};
 }
 
-inline ArcKey GetArcKey(int src, int dst) {
-    return {src, dst};
-}
-
 class Network {
 public:
-    Network() = default;
+    Network();
 
     virtual ~Network() = default;
 
@@ -41,15 +37,15 @@ public:
 
     void Clear();
 
-    void AddNode(int nid, int supply, bool is_artificial = false);
+    void AddNode(NodeIndex nid, FlowType supply, bool is_artificial = false);
 
-    int AddArc(int src, int dst, double cost, int capacity, bool is_artificial);
+    NodeIndex AddArc(NodeIndex src, NodeIndex dst, PriceType cost, FlowType capacity, bool is_artificial);
 
-    int AddArc(int src, int dst, double cost, int capacity);
+    NodeIndex AddArc(NodeIndex src, NodeIndex dst, PriceType cost, FlowType capacity);
 
-    int AddArtificialArc(int src, int dst);
+    NodeIndex AddArtificialArc(NodeIndex src, NodeIndex dst);
 
-    ArcPtr GetArc(int aid) const {
+    ArcPtr GetArc(ArcIndex aid) const {
         return arcs_.at(aid);
     }
 
@@ -61,36 +57,44 @@ public:
         return FindHashMap(arc_idx_, key);
     }
 
-    ArcPtr GetArc(int src, int dst) {
+    ArcPtr GetArc(NodeIndex src, NodeIndex dst) {
         return GetArc({src, dst});
     }
 
-    ArcPtr GetArc(int src, int dst) const {
+    ArcPtr GetArc(NodeIndex src, NodeIndex dst) const {
         return FindHashMap(arc_idx_, {src, dst});
     }
 
-    NodePtr GetNode(int nid) const {
-        if (nid > nodes_.size()) {
+    bool IsValidNode(NodeIndex nid) const {
+        return nid < num_nodes_;
+    }
+
+    NodePtr GetNode(NodeIndex nid) const {
+        if (!IsValidNode(nid)) {
             return nullptr;
         }
-        return nodes_.at(nid);
+        return nodes_[nid];
     }
 
-    size_t GetNodeNum() const {
-        return nodes_.size();
+    int GetNumNodes() const {
+        return num_nodes_;
     }
 
-    size_t GetArcNum() const {
-        return arcs_.size();
+    int GetNumArcs() const {
+        return num_arcs_;
     }
+
+private:
+    void AddArcIdx(const ArcPtr &p_arc);
+
+    void ResizeNodes(size_t num);
 
     std::vector<NodePtr> nodes_;
     std::vector<ArcPtr> arcs_;
     ArcPtrMap arc_idx_;
-    double max_cost_{};
-
-private:
-    int AddArcIdx(const ArcPtr &p_arc);
+    PriceType max_cost_;
+    int num_nodes_;
+    int num_arcs_;
 
     DISALLOW_COPY_AND_ASSIGN(Network);
 };

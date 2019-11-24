@@ -6,12 +6,17 @@
 
 namespace network {
 
-std::ostream &operator<<(std::ostream &os, const Network &nwk) {
-    int max_line = 10;
-    os << nwk.nodes_.size() << "\n";
+Network::Network() : max_cost_(0),
+                     num_nodes_(0),
+                     num_arcs_(0) {}
 
-    int count = 0;
-    for (const auto &p_node: nwk.nodes_) {
+std::ostream &operator<<(std::ostream &os, const Network &nwk) {
+    NodeIndex max_line = 10;
+    os << nwk.GetNumNodes() << "\n";
+
+    NodeIndex count = 0;
+    for (int i = 0; i < nwk.GetNumNodes(); i++) {
+        auto p_node = nwk.GetNode(i);
         os << p_node->node_id_ << ", " << p_node->supply_ << ": ";
         for (auto dst: p_node->arc_dst_) {
             auto p_arc = nwk.GetArc(p_node->node_id_, dst);
@@ -47,42 +52,47 @@ void Network::Clear() {
     arcs_.clear();
     nodes_.clear();
     arc_idx_.clear();
-    max_cost_ = 0.0;
+    max_cost_ = 0;
+    num_arcs_ = 0;
+    num_nodes_ = 0;
 }
 
-void Network::AddNode(int nid, int supply, bool is_artificial) {
-    NodePtr node(new Node(nid, supply, is_artificial));
-    nodes_.emplace_back(node);
+void Network::AddNode(NodeIndex nid, FlowType supply, bool is_artificial) {
+    num_nodes_ += 1;
+    ResizeNodes(num_nodes_);
+    nodes_[nid] = std::make_shared<Node>(nid, supply, is_artificial);
 }
 
-int Network::AddArc(int src, int dst, double cost, int capacity, bool is_artificial) {
-    int aid = GetArcNum();
+ArcIndex Network::AddArc(NodeIndex src, NodeIndex dst, PriceType cost, FlowType capacity, bool is_artificial) {
+    NodeIndex aid = GetNumArcs();
     ArcPtr arc(new Arc(aid, src, dst, cost, capacity, is_artificial));
-//    printf("Arc %d src %d dst %d\n", aid, src, dst);
     arcs_.emplace_back(arc);
     nodes_[src]->AddArdDst(dst);
     AddArcIdx(arc);
     if (!is_artificial) {
         max_cost_ += cost;
     }
+    num_arcs_ += 1;
     return aid;
 }
 
-int Network::AddArc(int src, int dst, double cost, int capacity) {
+ArcIndex Network::AddArc(NodeIndex src, NodeIndex dst, PriceType cost, FlowType capacity) {
     return AddArc(src, dst, cost, capacity, false);
 }
 
-int Network::AddArtificialArc(int src, int dst) {
+ArcIndex Network::AddArtificialArc(NodeIndex src, NodeIndex dst) {
     return AddArc(src, dst, max_cost_, MAX_CAPACITY, true);
 }
 
-int Network::AddArcIdx(const ArcPtr &p_arc) {
-    int src = p_arc->src_;
-    int dst = p_arc->dst_;
-    auto key = GetArcKey(src, dst);
+void Network::AddArcIdx(const ArcPtr &p_arc) {
+    auto key = GetArcKey(p_arc);
     arc_idx_.insert({key, p_arc});
-    return arc_idx_.size();
 }
 
+void Network::ResizeNodes(size_t num) {
+    if (nodes_.size() <= num) {
+        nodes_.resize(num + 1);
+    }
+}
 
 }

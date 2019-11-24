@@ -23,21 +23,27 @@ void PrintPath(const Network &nwk, const vector<int> &path) {
 }
 
 void TestReadNetwork() {
-//    string filename = "../data/test.nwk";
-    string filename = "../data/petersen.nwk";
+    string filename = "../data/test.nwk";
+//    string filename = "../data/petersen.nwk";
     Network nwk{};
-    ReadNetwork(filename, nwk);
+    int ret = ReadNetwork(filename, nwk);
+    if (ret != RET_SUCCESS) {
+        return;
+    }
     cout << nwk << endl;
 }
 
 void TestShortestPath() {
     string filename = "../data/shortestpath.nwk";
     Network nwk{};
-    ReadNetwork(filename, nwk);
+    int ret = ReadNetwork(filename, nwk);
+    if (ret != RET_SUCCESS) {
+        return;
+    }
     printf("Init\n");
     cout << nwk << endl;
     int src = 0;
-    int dst = int(nwk.GetNodeNum() - 1);
+    int dst = int(nwk.GetNumNodes() - 1);
     auto p_src = nwk.GetNode(src);
     auto p_dst = nwk.GetNode(dst);
     cout << "src\n" << *p_src << endl;
@@ -54,5 +60,5 @@ void TestShortestPath() {
 
 int main() {
     TestReadNetwork();
-//    TestShortestPath();
+    TestShortestPath();
 }

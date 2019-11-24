@@ -14,11 +14,10 @@
 
 namespace network {
 
-enum ReturnStatus {
-    RET_SUCCESS = 0,
-    RET_FAIL = 1,
-    RET_ERROR = 2,
-};
+//ReturnStatus
+const int RET_SUCCESS = 0;
+const int RET_FAIL = 1;
+const int RET_ERROR = 2;
 
 }
 

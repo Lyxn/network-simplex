@@ -15,7 +15,7 @@ namespace network {
 using std::string;
 using std::vector;
 
-int ParseNodeInfo(const std::string &node_info, int &nid, int &supply) {
+int ParseNodeInfo(const std::string &node_info, NodeIndex &nid, FlowType &supply) {
     vector<string> items;
     SplitStr(node_info, ",", items);
     ParseStr(items[0], nid);
@@ -27,7 +27,7 @@ int ParseNodeInfo(const std::string &node_info, int &nid, int &supply) {
     return RET_SUCCESS;
 }
 
-int ParseArcInfo(const std::string &arc_info, int &dst, double &cost, int &capacity) {
+int ParseArcInfo(const std::string &arc_info, NodeIndex &dst, PriceType &cost, FlowType &capacity) {
     vector<string> items;
     SplitStr(arc_info, ",", items);
     ParseStr(items[0], dst);
@@ -47,9 +47,9 @@ int ReadNetwork(const std::string &filename, Network &nwk) {
         return RET_FAIL;
     }
     string line;
-    int num_node;
+    int num_nodes;
     getline(infile, line);
-    ParseStr(line, num_node);
+    ParseStr(line, num_nodes);
     while (getline(infile, line)) {
         vector<string> items;
         SplitStr(line, ":", items);
@@ -58,8 +58,8 @@ int ReadNetwork(const std::string &filename, Network &nwk) {
         }
         //Node
         string node_str = items[0];
-        int nid;
-        int supply;
+        NodeIndex nid;
+        FlowType supply;
         ParseNodeInfo(node_str, nid, supply);
         nwk.AddNode(nid, supply);
         //Arcs
@@ -70,30 +70,32 @@ int ReadNetwork(const std::string &filename, Network &nwk) {
         vector<string> arc_vec;
         SplitStr(arc_str, ";", arc_vec);
         for (auto &arc: arc_vec) {
-            int dst;
-            double cost;
-            int capacity;
+            NodeIndex dst;
+            PriceType cost;
+            FlowType capacity;
             ParseArcInfo(arc, dst, cost, capacity);
             nwk.AddArc(nid, dst, cost, capacity);
         }
     }
-    if (num_node != nwk.GetNodeNum()) {
-        printf("the node num %d is not the same as the file num %d", nwk.GetNodeNum(), num_node);
+    if (num_nodes != nwk.GetNumNodes()) {
+        printf("the node num %d is not the same as the file num %d\n", nwk.GetNumNodes(), num_nodes);
         return RET_ERROR;
     }
-    auto last_node = nwk.GetNode(num_node - 1);
-    if (last_node == nullptr || last_node->node_id_ != num_node - 1) {
-        printf("last node is nullptr or node_id is not valid");
+    auto last_node = nwk.GetNode(num_nodes - 1);
+    if (last_node == nullptr || last_node->node_id_ != num_nodes - 1) {
+        printf("last node is nullptr or node_id is not valid\n");
         return RET_ERROR;
     }
-    std::cout << "Network Nodes: " << nwk.GetNodeNum()
-              << " Arcs: " << nwk.GetArcNum()
+    std::cout << "Network Nodes: " << nwk.GetNumNodes()
+              << " Arcs: " << nwk.GetNumArcs()
               << std::endl;
     return RET_SUCCESS;
 }
 
-int FindShortestPathBellman(Network &nwk, int dst) {
-    for (auto &p_node: nwk.nodes_) {
+int FindShortestPathBellman(Network &nwk, NodeIndex dst) {
+    int num_nodes = nwk.GetNumNodes();
+    for (int i = 0; i < num_nodes; i++) {
+        auto p_node = nwk.GetNode(i);
         p_node->price_ = MAX_PRICE;
     }
     auto p_dst = nwk.GetNode(dst);
@@ -101,7 +103,8 @@ int FindShortestPathBellman(Network &nwk, int dst) {
     p_dst->father_ = INVALID_NODE_ID;
     do {
         bool has_change = false;
-        for (auto &p_arc: nwk.arcs_) {
+        for (int i = 0; i < nwk.GetNumArcs(); i++) {
+            auto p_arc = nwk.GetArc(i);
             if (p_arc->src_ == dst) {
                 continue;
             }
@@ -110,7 +113,7 @@ int FindShortestPathBellman(Network &nwk, int dst) {
                 continue;
             }
             auto p_arc_src = nwk.GetNode(p_arc->src_);
-            double price = p_arc->cost_ + p_arc_dst->price_;
+            auto price = p_arc->cost_ + p_arc_dst->price_;
             if (p_arc_src->price_ > price) {
                 p_arc_src->price_ = price;
                 p_arc_src->father_ = p_arc->dst_;
@@ -124,19 +127,22 @@ int FindShortestPathBellman(Network &nwk, int dst) {
     return RET_SUCCESS;
 }
 
-int FindShortestPathDijkstra(Network &nwk, int dst) {
-    for (auto &p_node: nwk.nodes_) {
+int FindShortestPathDijkstra(Network &nwk, NodeIndex dst) {
+    int num_nodes = nwk.GetNumNodes();
+    for (int i = 0; i < num_nodes; i++) {
+        auto p_node = nwk.GetNode(i);
         p_node->price_ = MAX_PRICE;
     }
     auto p_dst = nwk.GetNode(dst);
     p_dst->price_ = 0;
     p_dst->father_ = INVALID_NODE_ID;
-    std::set<int> node_shortest;
+    std::set<NodeIndex> node_shortest;
     do {
         // find min node
-        int min_node = INVALID_NODE_ID;
-        double min_price = MAX_PRICE;
-        for (auto &p_node: nwk.nodes_) {
+        NodeIndex min_node = INVALID_NODE_ID;
+        PriceType min_price = MAX_PRICE;
+        for (int i = 0; i < num_nodes; i++) {
+            auto p_node = nwk.GetNode(i);
             if (HasValue(node_shortest, p_node->node_id_)) {
                 continue;
             }
@@ -151,17 +157,18 @@ int FindShortestPathDijkstra(Network &nwk, int dst) {
         }
         node_shortest.insert(min_node);
         // update node price
-        for (auto &p_node: nwk.nodes_) {
+        for (int i = 0; i < num_nodes; i++) {
+            auto p_node = nwk.GetNode(i);
             if (HasValue(node_shortest, p_node->node_id_)) {
                 continue;
             }
             for (auto arc_dst: p_node->arc_dst_) {
                 auto p_arc = nwk.GetArc(p_node->node_id_, arc_dst);
                 auto p_arc_dst = nwk.GetNode(arc_dst);
-                if (p_dst->price_ == MAX_PRICE) {
+                if (p_arc_dst->price_ == MAX_PRICE) {
                     continue;
                 }
-                double price = p_arc->cost_ + p_arc_dst->price_;
+                PriceType price = p_arc->cost_ + p_arc_dst->price_;
                 if (p_node->price_ > price) {
                     p_node->father_ = arc_dst;
                     p_node->price_ = price;
@@ -173,8 +180,8 @@ int FindShortestPathDijkstra(Network &nwk, int dst) {
     return RET_SUCCESS;
 }
 
-std::vector<int> GetPath(const Network &nwk, int src) {
-    std::vector<int> path;
+std::vector<NodeIndex> GetPath(const Network &nwk, NodeIndex src) {
+    std::vector<NodeIndex> path;
     auto next = src;
     while (next != INVALID_NODE_ID) {
         path.push_back(next);

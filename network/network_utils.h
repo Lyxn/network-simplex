@@ -13,11 +13,11 @@ namespace network {
 
 int ReadNetwork(const std::string &file_nwk, Network &nwk);
 
-int FindShortestPathBellman(Network &nwk, int dst);
+int FindShortestPathBellman(Network &nwk, NodeIndex dst);
 
-int FindShortestPathDijkstra(Network &nwk, int dst);
+int FindShortestPathDijkstra(Network &nwk, NodeIndex dst);
 
-std::vector<int> GetPath(const Network &nwk, int dst);
+std::vector<NodeIndex> GetPath(const Network &nwk, NodeIndex dst);
 
 }
 

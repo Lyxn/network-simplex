@@ -13,8 +13,10 @@
 
 namespace network {
 
-const int INVALID_ARC_ID = INT32_MAX;
-const int MAX_CAPACITY = INT_MAX;
+typedef int ArcIndex;
+
+const ArcIndex INVALID_ARC_ID = INT_MAX;
+const FlowType MAX_CAPACITY = INT_MAX;
 
 enum FlowStatus {
     FLOW_LOWER = 0,
@@ -31,43 +33,44 @@ class Arc {
 public:
     Arc() = delete;
 
-    Arc(int arc_id, int src_id, int dst_id, double cost, int capacity, int is_artificial);
+    Arc(ArcIndex arc, NodeIndex src, NodeIndex dst, PriceType cost, FlowType capacity, bool is_artificial);
 
-    Arc(int arc_id, int src_id, int dst_id, double cost, int capacity);
+    Arc(ArcIndex arc, NodeIndex src, NodeIndex dst, PriceType cost, FlowType capacity);
 
-    Arc(int arc_id, int src_id, int dst_id, double cost);
+    Arc(ArcIndex arc, NodeIndex src, NodeIndex dst, PriceType cost);
 
     virtual ~Arc() = default;
 
-    bool operator==(const Arc &rhs) const;
+    bool IsStatusBasis() const {
+        return status_ == FLOW_BASIS;
+    }
 
-    bool operator!=(const Arc &rhs) const;
+    bool IsStatusUpper() const {
+        return status_ == FLOW_UPPER;
+    }
 
-    int GetNeighbor(int node_id) const;
+    bool IsStatusLower() const {
+        return status_ == FLOW_LOWER;
+    }
 
-    bool IsStatusBasis() const;
-
-    bool IsStatusUpper() const;
-
-    bool IsStatusLower() const;
-
-    void SetStatus(FlowStatus status);
-
+    void SetStatus(FlowStatus status) {
+        status_ = status;
+    }
     friend std::ostream &operator<<(std::ostream &os, const Arc &arc);
 
 public:
-    int arc_id_;
-    int src_;
-    int dst_;
-    double cost_;
-    int capacity_;
-    int flow_;
-    double reduced_cost_;
-    FlowStatus status_;
+    ArcIndex arc_id_;
+    NodeIndex src_;
+    NodeIndex dst_;
+    PriceType cost_;
+    FlowType capacity_;
+    FlowType flow_;
+    PriceType reduced_cost_;
     Direction direction_;
     bool is_artificial_;
 
 private:
+    FlowStatus status_;
 
     DISALLOW_COPY_AND_ASSIGN(Arc);
 };

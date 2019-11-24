@@ -34,7 +34,6 @@ void TestTree0() {
     PrintBasisArc(tree);
     printf("NonBasis\n");
     PrintNonBasisArc(tree);
-    printf("TotalCost=%f\n", tree.GetTotalCost());
 }
 
 void TestSimplex0() {
