@@ -81,15 +81,15 @@ int TreeAPI::InitTreeStruct(NodeIndex root) {
         if (p_node->neighbor_.empty()) {
             continue;
         }
-        NodeIndex brother = INVALID_NODE_ID;
+        NodeIndex sibling = INVALID_NODE_ID;
         for (auto child_id: p_node->neighbor_) {
-            //Oldest Son
-            p_node->son_ = child_id;
-            //Brother
+            //Oldest Child
+            p_node->child_ = child_id;
+            //Sibling
             auto p_child = GetNode(child_id);
-            p_child->father_ = pred_id;
-            p_child->brother_ = brother;
-            brother = child_id;
+            p_child->parent_ = pred_id;
+            p_child->sibling_ = sibling;
+            sibling = child_id;
             //Remove Parent in neighbor
             p_child->neighbor_.erase(pred_id);
             //Update stack
@@ -106,17 +106,17 @@ void TreeAPI::UpdateDepth(NodeIndex nid) {
         auto cur_id = stk.top();
         stk.pop();
         auto p_cur = GetNode(cur_id);
-        auto brother = p_cur->brother_;
-        if (IsValidNode(brother)) {
-            auto p_brother = GetNode(brother);
-            p_brother->depth_ = p_cur->depth_;
-            stk.push(brother);
+        auto sibling = p_cur->sibling_;
+        if (IsValidNode(sibling)) {
+            auto p_sibling = GetNode(sibling);
+            p_sibling->depth_ = p_cur->depth_;
+            stk.push(sibling);
         }
-        auto son = p_cur->son_;
-        if (IsValidNode(son)) {
-            auto p_son = GetNode(son);
-            p_son->depth_ = p_cur->depth_ + 1;
-            stk.push(son);
+        auto child = p_cur->child_;
+        if (IsValidNode(child)) {
+            auto p_child = GetNode(child);
+            p_child->depth_ = p_cur->depth_ + 1;
+            stk.push(child);
         }
     }
 }
@@ -203,16 +203,16 @@ void TreeAPI::CalcBasisPrice() {
         auto cur_id = stk.top();
         stk.pop();
         auto p_cur = GetNode(cur_id);
-        if (IsValidNode(p_cur->brother_)) {
-            auto p_brother = GetNode(p_cur->brother_);
-            auto p_father = GetNode(p_brother->father_);
-            p_brother->price_ = CalcNodePrice(p_father, p_brother);
-            stk.push(p_brother->node_id_);
+        if (IsValidNode(p_cur->sibling_)) {
+            auto p_sibling = GetNode(p_cur->sibling_);
+            auto p_father = GetNode(p_sibling->parent_);
+            p_sibling->price_ = CalcNodePrice(p_father, p_sibling);
+            stk.push(p_sibling->node_id_);
         }
-        if (IsValidNode(p_cur->son_)) {
-            auto p_son = GetNode(p_cur->son_);
-            p_son->price_ = CalcNodePrice(p_cur, p_son);
-            stk.push(p_son->node_id_);
+        if (IsValidNode(p_cur->child_)) {
+            auto p_child = GetNode(p_cur->child_);
+            p_child->price_ = CalcNodePrice(p_cur, p_child);
+            stk.push(p_child->node_id_);
         }
     }
 }
@@ -262,9 +262,9 @@ NodePtr TreeAPI::FindNodeJoint(NodeIndex src, NodeIndex dst) {
             return p_src;
         }
         if (p_src->depth_ > p_dst->depth_) {
-            p_src = GetNode(p_src->father_);
+            p_src = GetNode(p_src->parent_);
         } else {
-            p_dst = GetNode(p_dst->father_);
+            p_dst = GetNode(p_dst->parent_);
         }
     } while (true);
     return nullptr;
@@ -300,7 +300,7 @@ void TreeAPI::UpdateCyclePath(ArcPtr &arc_in, NodeIndex nid, std::vector<ArcPtr>
     auto last_arc = arc_in;
     auto last_node = GetNode(nid);
     while (last_node->node_id_ != cycle_.node_joint) {
-        auto p_node = GetNode(last_node->father_);
+        auto p_node = GetNode(last_node->parent_);
         auto p_arc = GetBasisArc(p_node->node_id_, last_node->node_id_);
         UpdateArcDirection(last_arc, p_arc);
         path.push_back(p_arc);
@@ -399,7 +399,7 @@ bool TreeAPI::IsNodeInRoot(NodeIndex nid) const {
         if (p_node->node_id_ == cycle_.arc_out->src_ || p_node->node_id_ == cycle_.arc_out->dst_) {
             return false;
         }
-        p_node = GetNode(p_node->father_);
+        p_node = GetNode(p_node->parent_);
     }
     return true;
 }
@@ -408,7 +408,7 @@ void TreeAPI::UpdateTree(ArcPtr &arc_in, ArcPtr &arc_out) {
     auto out_src = GetNode(arc_out->src_);
     auto out_dst = GetNode(arc_out->dst_);
     NodePtr out_upd;
-    if (out_src->father_ == out_dst->node_id_) {
+    if (out_src->parent_ == out_dst->node_id_) {
         out_upd = out_src;
     } else {
         out_upd = out_dst;
@@ -438,19 +438,19 @@ void TreeAPI::UpdateDepthAndPrice(NodeIndex nid, PriceType delta) {
         auto cur_id = stk.top();
         stk.pop();
         auto p_cur = GetNode(cur_id);
-        auto brother = p_cur->brother_;
-        if (IsValidNode(brother)) {
-            auto p_brother = GetNode(brother);
-            p_brother->depth_ = p_cur->depth_;
-            p_brother->price_ += delta;
-            stk.push(brother);
+        auto sibling = p_cur->sibling_;
+        if (IsValidNode(sibling)) {
+            auto p_sibling = GetNode(sibling);
+            p_sibling->depth_ = p_cur->depth_;
+            p_sibling->price_ += delta;
+            stk.push(sibling);
         }
-        auto son = p_cur->son_;
-        if (IsValidNode(son)) {
-            auto p_son = GetNode(son);
-            p_son->depth_ = p_cur->depth_ + 1;
-            p_son->price_ += delta;
-            stk.push(son);
+        auto child = p_cur->child_;
+        if (IsValidNode(child)) {
+            auto p_child = GetNode(child);
+            p_child->depth_ = p_cur->depth_ + 1;
+            p_child->price_ += delta;
+            stk.push(child);
         }
     }
 }
@@ -460,46 +460,46 @@ void TreeAPI::UpdateTreeStruct(NodePtr &in_root, NodePtr &in_upd, NodePtr &out_u
     NodePtr cur_node = in_upd;
     auto new_father = in_root->node_id_;
     while (cur_node->node_id_ != out_upd->node_id_) {
-        auto p_old_father = GetNode(cur_node->father_);
+        auto p_old_father = GetNode(cur_node->parent_);
         AddChild(cur_node, p_old_father);
         DelChild(p_old_father, cur_node);
-        cur_node->father_ = new_father;
+        cur_node->parent_ = new_father;
         new_father = cur_node->node_id_;
         cur_node = p_old_father;
     }
-    auto out_root = GetNode(out_upd->father_);
+    auto out_root = GetNode(out_upd->parent_);
     DelChild(out_root, out_upd);
-    out_upd->father_ = new_father;
+    out_upd->parent_ = new_father;
 }
 
 void TreeAPI::AddChild(NodePtr &node, NodePtr &child) {
-    if (!IsValidNode(node->son_)) {
-        node->son_ = child->node_id_;
+    if (!IsValidNode(node->child_)) {
+        node->child_ = child->node_id_;
         return;
     }
-    auto son = GetNode(node->son_);
-    while (IsValidNode(son->brother_)) {
-        son = GetNode(son->brother_);
+    auto cur = GetNode(node->child_);
+    while (IsValidNode(cur->sibling_)) {
+        cur = GetNode(cur->sibling_);
     }
-    son->brother_ = child->node_id_;
+    cur->sibling_ = child->node_id_;
 }
 
 void TreeAPI::DelChild(NodePtr &node, NodePtr &child) {
-    if (node->son_ == child->node_id_) {
-        node->son_ = child->brother_;
-        child->brother_ = INVALID_NODE_ID;
+    if (node->child_ == child->node_id_) {
+        node->child_ = child->sibling_;
+        child->sibling_ = INVALID_NODE_ID;
         return;
     }
 
-    auto son = node->son_;
-    while (IsValidNode(son)) {
-        auto p_son = GetNode(son);
-        if (p_son->brother_ == child->node_id_) {
-            p_son->brother_ = child->brother_;
-            child->brother_ = INVALID_NODE_ID;
+    auto cur = node->child_;
+    while (IsValidNode(cur)) {
+        auto p_cur = GetNode(cur);
+        if (p_cur->sibling_ == child->node_id_) {
+            p_cur->sibling_ = child->sibling_;
+            child->sibling_ = INVALID_NODE_ID;
             break;
         }
-        son = p_son->brother_;
+        cur = p_cur->sibling_;
     }
 }
 
@@ -610,9 +610,9 @@ void PrintTree(const TreeAPI &tree, const std::string &prefix, int nid) {
            p_node->supply_,
            p_node->price_
     );
-    auto prefix_son = prefix + "  ";
-    PrintTree(tree, prefix_son, p_node->son_);
-    PrintTree(tree, prefix, p_node->brother_);
+    auto prefix_child = prefix + "  ";
+    PrintTree(tree, prefix_child, p_node->child_);
+    PrintTree(tree, prefix, p_node->sibling_);
 }
 
 void PrintArc() {

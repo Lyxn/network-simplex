@@ -50,9 +50,9 @@ public:
 
     //Spanning Tree
     bool is_root_;
-    NodeIndex father_;
-    NodeIndex son_;
-    NodeIndex brother_;
+    NodeIndex parent_;
+    NodeIndex child_;
+    NodeIndex sibling_;
     int depth_;
 
     //Price

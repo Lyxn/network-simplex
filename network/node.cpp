@@ -12,17 +12,17 @@ Node::Node(NodeIndex node_id,
                                  supply_(supply),
                                  is_artificial_(is_artificial),
                                  is_root_(false),
-                                 father_(INVALID_NODE_ID),
-                                 son_(INVALID_NODE_ID),
-                                 brother_(INVALID_NODE_ID),
+                                 parent_(INVALID_NODE_ID),
+                                 child_(INVALID_NODE_ID),
+                                 sibling_(INVALID_NODE_ID),
                                  depth_(0),
                                  price_(MAX_PRICE) {}
 
 void Node::SetRoot() {
     is_root_ = true;
     depth_ = 0;
-    father_ = INVALID_NODE_ID;
-    brother_ = INVALID_NODE_ID;
+    parent_ = INVALID_NODE_ID;
+    sibling_ = INVALID_NODE_ID;
 }
 
 void Node::AddArdDst(NodeIndex dst) {
@@ -45,7 +45,7 @@ std::ostream &operator<<(std::ostream &os, const Node &node) {
     os << "node_id: " << node.node_id_
        << " supply: " << node.supply_
        << " depth: " << node.depth_
-       << " father: " << node.father_
+       << " father: " << node.parent_
        << " price: " << node.price_;
     return os;
 }
